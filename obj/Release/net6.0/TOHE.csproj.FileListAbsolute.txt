@@ -1,0 +1,14 @@
+C:\Users\googl\Downloads\tohex-v1.4.2-code\tohex-v1.4.2-code\bin\Release\net6.0\TOHE.deps.json
+C:\Users\googl\Downloads\tohex-v1.4.2-code\tohex-v1.4.2-code\bin\Release\net6.0\TOHE.dll
+C:\Users\googl\Downloads\tohex-v1.4.2-code\tohex-v1.4.2-code\bin\Release\net6.0\TOHE.pdb
+C:\Users\googl\Downloads\tohex-v1.4.2-code\tohex-v1.4.2-code\obj\Release\net6.0\GitInfo.cache
+C:\Users\googl\Downloads\tohex-v1.4.2-code\tohex-v1.4.2-code\obj\Release\net6.0\TOHE.csproj.AssemblyReference.cache
+C:\Users\googl\Downloads\tohex-v1.4.2-code\tohex-v1.4.2-code\obj\Release\net6.0\TOHE.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\googl\Downloads\tohex-v1.4.2-code\tohex-v1.4.2-code\obj\Release\net6.0\TOHE.AssemblyInfoInputs.cache
+C:\Users\googl\Downloads\tohex-v1.4.2-code\tohex-v1.4.2-code\obj\Release\net6.0\TOHE.AssemblyInfo.cs
+C:\Users\googl\Downloads\tohex-v1.4.2-code\tohex-v1.4.2-code\obj\Release\net6.0\TOHE.csproj.CoreCompileInputs.cache
+C:\Users\googl\Downloads\tohex-v1.4.2-code\tohex-v1.4.2-code\obj\Release\net6.0\TOHE.csproj.Fody.CopyLocal.cache
+C:\Users\googl\Downloads\tohex-v1.4.2-code\tohex-v1.4.2-code\obj\Release\net6.0\TOHE.dll
+C:\Users\googl\Downloads\tohex-v1.4.2-code\tohex-v1.4.2-code\obj\Release\net6.0\refint\TOHE.dll
+C:\Users\googl\Downloads\tohex-v1.4.2-code\tohex-v1.4.2-code\obj\Release\net6.0\TOHE.pdb
+C:\Users\googl\Downloads\tohex-v1.4.2-code\tohex-v1.4.2-code\obj\Release\net6.0\ref\TOHE.dll
