@@ -13,8 +13,8 @@
 >
 
 <p align="center">
-<a href="https://gitee.com/xigua_ya/tohex/" target="_blank"><img src="https://img.shields.io/badge/Gitee%20-%231DA1F2.svg?&style=for-the-badge&logo=gitee&logoColor=white&color=FFA500"/></a>
-<a href="https://gitee.com/xigua_ya/tohex/releases" target="_blank"><img src="https://img.shields.io/badge/Gitee获取新版本%20-%231DA1F2.svg?&style=for-the-badge&logo=gitee&logoColor=white&color=FFA500"/></a>
+<a href="https://gitee.com/a-bor-cat/tohex-abc" target="_blank"><img src="https://img.shields.io/badge/Gitee%20-%231DA1F2.svg?&style=for-the-badge&logo=gitee&logoColor=white&color=FFA500"/></a>
+<a href="https://gitee.com/a-bor-cat/tohex-abc/releases/" target="_blank"><img src="https://img.shields.io/badge/Gitee获取新版本%20-%231DA1F2.svg?&style=for-the-badge&logo=gitee&logoColor=white&color=FFA500"/></a>
 <a href="https://github.com/AboringCat/TOHEX-ABC" target="_blank"><img src="https://img.shields.io/badge/GitHub%20-%231DA1F2.svg?&style=for-the-badge&logo=github&logoColor=white&color=000000"/></a>
 <a href="https://github.com/AboringCat/TOHEX-ABC/releases" target="_blank"><img src="https://img.shields.io/badge/GitHubReleases%20-%231DA1F2.svg?&style=for-the-badge&logo=github&logoColor=white&color=000000"/></a>
 <a href="https://discord.gg/WKYdzxKhNm" target="_blank"><img src="https://img.shields.io/badge/Discord%20-%231DA1F2.svg?&style=for-the-badge&logo=discord&logoColor=white&color=4169E1"/></a>
@@ -25,8 +25,13 @@
 ---
 
 **不过我是基于TOHEX做的,我还没完全学会C#,所以暂时没有自己做的新职业**
+
+
 **源代码不定时更新**
+
+
 **有能力就可以捐赠我,力所能及即可**
+
 
 
 
