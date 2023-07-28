@@ -128,6 +128,7 @@ public class PlayerGameOptionsSender : GameOptionsSender
             case CustomRoles.Scout:
             case CustomRoles.Deputy:
             case CustomRoles.DemonHunterm:
+            case CustomRoles.Hunter:
             case CustomRoles.Captain:
             case CustomRoles.Provocateur:
             case CustomRoles.BSR:
@@ -135,6 +136,7 @@ public class PlayerGameOptionsSender : GameOptionsSender
             case CustomRoles.Lawyer:
             case CustomRoles.NiceTracker:
             case CustomRoles.Knight:
+            case CustomRoles.Merchant:
                 opt.SetVision(false);
                 break;
             case CustomRoles.Zombie:
@@ -150,6 +152,10 @@ public class PlayerGameOptionsSender : GameOptionsSender
                     ? opt.GetInt(Int32OptionNames.EmergencyCooldown)
                     : 300f;
                 AURoleOptions.EngineerInVentMaxTime = 1;
+                break;
+            case CustomRoles.Injured:
+                AURoleOptions.EngineerCooldown = Options.InjuredVentCooldown.GetFloat();
+                AURoleOptions.EngineerInVentMaxTime = 0f;
                 break;
             case CustomRoles.Paranoia:
                 AURoleOptions.EngineerCooldown =
@@ -214,9 +220,6 @@ public class PlayerGameOptionsSender : GameOptionsSender
             case CustomRoles.Concealer:
                 Concealer.ApplyGameOptions();
                 break;
-            case CustomRoles.Assassin:
-                Assassin.ApplyGameOptions();
-                break;
             case CustomRoles.Hacker:
                 Hacker.ApplyGameOptions();
                 break;
@@ -275,6 +278,10 @@ public class PlayerGameOptionsSender : GameOptionsSender
                 break;
             case CustomRoles.Anglers:
                 AURoleOptions.ShapeshifterCooldown = Options.AnglersShapeshifterCooldown.GetFloat();
+                AURoleOptions.ShapeshifterDuration = 0.3f;
+                break;
+            case CustomRoles.Assassin:
+                AURoleOptions.ShapeshifterCooldown = Options.AssassinateCooldown.GetFloat();
                 AURoleOptions.ShapeshifterDuration = 0.3f;
                 break;
         }
@@ -357,6 +364,16 @@ public class PlayerGameOptionsSender : GameOptionsSender
                     Main.AllPlayerSpeed[player.PlayerId] = 0.5f;
                     opt.SetFloat(FloatOptionNames.CrewLightMod, 0.5f);
                     opt.SetFloat(FloatOptionNames.ImpostorLightMod, 0.5f);
+                    break;
+                case CustomRoles.Signal:
+                    foreach (var pc in Main.AllPlayerControls)
+                    {
+                        if (GameStates.IsInTask && pc.Is(CustomRoles.Signal))
+                        {
+                            Main.SignalLocation.Remove(pc.PlayerId);
+                            Main.SignalLocation.Add(pc.PlayerId, pc.GetTruePosition());
+                        }
+                    }
                     break;
             }
         }

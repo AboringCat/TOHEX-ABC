@@ -44,7 +44,7 @@ internal class Cloud
         {
             if (!Options.ShareLobby.GetBool() && !command) return false;
             if (!Main.newLobby || (GameData.Instance.PlayerCount < Options.ShareLobbyMinPlayer.GetInt() && !command) || !GameStates.IsLobby) return false;
-            if (!AmongUsClient.Instance.AmHost || !GameData.Instance || AmongUsClient.Instance.NetworkMode == NetworkModes.LocalGame) return false;
+            if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost || !GameData.Instance || AmongUsClient.Instance.NetworkMode == NetworkModes.LocalGame) return false;
 
             if (IP == null || LOBBY_PORT == 0) throw new("Has no ip or port");
 
@@ -79,7 +79,7 @@ internal class Cloud
         connecting = true;
         new LateTask(() =>
         {
-            if (!AmongUsClient.Instance.AmHost || !GameData.Instance || AmongUsClient.Instance.NetworkMode == NetworkModes.LocalGame)
+            if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost || !GameData.Instance || AmongUsClient.Instance.NetworkMode == NetworkModes.LocalGame)
             {
                 connecting = false;
                 return;

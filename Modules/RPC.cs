@@ -32,6 +32,8 @@ enum CustomRPC
     DoSpell,
     SniperSync,
     SetLoversPlayers,
+    SetCrushLoversPlayers,
+    SetCupidLoversPlayers,
     SetExecutionerTarget,
     RemoveExecutionerTarget,
     SendFireWorksState,
@@ -60,6 +62,7 @@ enum CustomRPC
     SwordsManKill,
     SetCounterfeiterSellLimit,
     SetProphetSellLimit,
+    SetMiniSellLimit,
     SetScoutSellLimit,
     SetDeputySellLimit,
     SetQSRSellLimit,
@@ -94,6 +97,7 @@ enum CustomRPC
     SetCaptainSolicitLimit,
     SetElectLimlit,
     SetPoliceLimlit,
+    Strikers,
 
     //SoloKombat
     SyncKBPlayer,
@@ -120,7 +124,7 @@ public enum Sounds
 internal class RPCHandlerPatch
 {
     public static bool TrustedRpc(byte id)
-    => (CustomRPC)id is CustomRPC.VersionCheck or CustomRPC.RequestRetryVersionCheck or CustomRPC.AntiBlackout or CustomRPC.Judge or CustomRPC.Guess or CustomRPC.MafiaRevenge;
+    => (CustomRPC)id is CustomRPC.VersionCheck or CustomRPC.RequestRetryVersionCheck or CustomRPC.AntiBlackout or CustomRPC.Judge or CustomRPC.Guess or CustomRPC.MafiaRevenge or CustomRPC.Strikers;
     public static bool Prefix(PlayerControl __instance, [HarmonyArgument(0)] byte callId, [HarmonyArgument(1)] MessageReader reader)
     {
         var rpcType = (RpcCalls)callId;
@@ -306,6 +310,18 @@ internal class RPCHandlerPatch
                 for (int i = 0; i < count; i++)
                     Main.LoversPlayers.Add(Utils.GetPlayerById(reader.ReadByte()));
                 break;
+            case CustomRPC.SetCrushLoversPlayers:
+                Main.CrushLoversPlayers.Clear();
+                int count1 = reader.ReadInt32();
+                for (int i = 0; i < count1; i++)
+                    Main.CrushLoversPlayers.Add(Utils.GetPlayerById(reader.ReadByte()));
+                break;
+            case CustomRPC.SetCupidLoversPlayers:
+                Main.CupidLoversPlayers.Clear();
+                int count2 = reader.ReadInt32();
+                for (int i = 0; i < count2; i++)
+                    Main.CupidLoversPlayers.Add(Utils.GetPlayerById(reader.ReadByte()));
+                break;
             case CustomRPC.SetExecutionerTarget:
                 Executioner.ReceiveRPC(reader, SetTarget: true);
                 break;
@@ -355,7 +371,7 @@ internal class RPCHandlerPatch
                 break;
             case CustomRPC.SetProphetSellLimit:
                 Prophet.ReceiveRPC(reader);
-               break;
+                break;
             case CustomRPC.SetScoutSellLimit:
                 Scout.ReceiveRPC(reader);
                 break;
@@ -419,9 +435,6 @@ internal class RPCHandlerPatch
             case CustomRPC.GuessKill:
                 GuessManager.RpcClientGuess(Utils.GetPlayerById(reader.ReadByte()));
                 break;
-            case CustomRPC.SetMarkedPlayer:
-                Assassin.ReceiveRPC(reader);
-                break;
             case CustomRPC.SetConcealerTimer:
                 Concealer.ReceiveRPC(reader);
                 break;
@@ -467,6 +480,9 @@ internal class RPCHandlerPatch
                 break;
             case CustomRPC.Judge:
                 Judge.ReceiveRPC(reader, __instance);
+                break;
+            case CustomRPC.Strikers:
+               // Strikers.ReceiveRPC(reader, __instance);
                 break;
             case CustomRPC.Guess:
                 GuessManager.ReceiveRPC(reader, __instance);
@@ -709,6 +725,12 @@ internal static class RPC
             case CustomRoles.Sheriff:
                 Sheriff.Add(targetId);
                 break;
+            case CustomRoles.NiceMini:
+                NiceMini.Add(targetId);
+                break;
+            case CustomRoles.EvilMini:
+                NiceMini.Add(targetId);
+                break;
             case CustomRoles.QuickShooter:
                 QuickShooter.Add(targetId);
                 break;
@@ -772,9 +794,6 @@ internal static class RPC
             case CustomRoles.Eraser:
                 Eraser.Add(targetId);
                 break;
-            case CustomRoles.Assassin:
-                Assassin.Add(targetId);
-                break;
             case CustomRoles.Sans:
                 Sans.Add(targetId);
                 break;
@@ -789,6 +808,9 @@ internal static class RPC
                 break;
             case CustomRoles.Judge:
                 Judge.Add(targetId);
+                break;
+            case CustomRoles.Strikers:
+             //   Strikers.Add(targetId);
                 break;
             case CustomRoles.Mortician:
                 Mortician.Add(targetId);
@@ -862,6 +884,18 @@ internal static class RPC
             case CustomRoles.Knight:
                 Knight.Add(targetId);
                 break;
+            case CustomRoles.Corpse:
+                Corpse.Add(targetId);
+                break;
+            case CustomRoles.DoubleKiller:
+                DoubleKiller.Add(targetId);
+                break;
+            case CustomRoles.EvilGambler:
+                EvilGambler.Add(targetId);
+                break;
+            case CustomRoles.Merchant:
+                Merchant.Add(targetId);
+                break;
         }
         HudManager.Instance.SetHudActive(true);
         if (PlayerControl.LocalPlayer.PlayerId == targetId) RemoveDisableDevicesPatch.UpdateDisableDevices();
@@ -879,6 +913,28 @@ internal static class RPC
         MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SetLoversPlayers, SendOption.Reliable, -1);
         writer.Write(Main.LoversPlayers.Count);
         foreach (var lp in Main.LoversPlayers)
+        {
+            writer.Write(lp.PlayerId);
+        }
+        AmongUsClient.Instance.FinishRpcImmediately(writer);
+    }
+    public static void SyncCrushLoversPlayers()
+    {
+        if (!AmongUsClient.Instance.AmHost) return;
+        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SetCrushLoversPlayers, SendOption.Reliable, -1);
+        writer.Write(Main.CrushLoversPlayers.Count);
+        foreach (var lp in Main.CrushLoversPlayers)
+        {
+            writer.Write(lp.PlayerId);
+        }
+        AmongUsClient.Instance.FinishRpcImmediately(writer);
+    }
+    public static void SyncCupidLoversPlayers()
+    {
+        if (!AmongUsClient.Instance.AmHost) return;
+        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SetCupidLoversPlayers, SendOption.Reliable, -1);
+        writer.Write(Main.CupidLoversPlayers.Count);
+        foreach (var lp in Main.CupidLoversPlayers)
         {
             writer.Write(lp.PlayerId);
         }

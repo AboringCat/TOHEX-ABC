@@ -65,8 +65,8 @@ internal class EAC
                     {
                         WarnHost();
                         Report(pc, "非法设置状态为幽灵");
-                        Logger.Fatal($"非法设置玩家【{pc.GetClientId()}:{pc.GetRealName()}】的状态为幽灵，已驳回", "EAC");
-                        return true;
+                        Logger.Fatal($"非法设置玩家【{pc.GetClientId()}:{pc.GetRealName()}】的状态为幽灵，已准许", "EAC");
+                        return false;
                     }
                     break;
                 case RpcCalls.SendChat:
@@ -115,8 +115,8 @@ internal class EAC
                     {
                         WarnHost();
                         Report(pc, "非法设置颜色");
-                        Logger.Fatal($"玩家【{pc.GetClientId()}:{pc.GetRealName()}】非法设置颜色，已驳回", "EAC");
-                        return true;
+                        Logger.Fatal($"玩家【{pc.GetClientId()}:{pc.GetRealName()}】非法设置颜色，已准许", "EAC");
+                        return false;
                     }
                     break;
                 case RpcCalls.MurderPlayer:
@@ -144,8 +144,8 @@ internal class EAC
                     {
                         WarnHost();
                         Report(pc, "非法设置颜色");
-                        Logger.Fatal($"玩家【{pc.GetClientId()}:{pc.GetRealName()}】非法设置颜色，已驳回", "EAC");
-                        return true;
+                        Logger.Fatal($"玩家【{pc.GetClientId()}:{pc.GetRealName()}】非法设置颜色，已准许", "EAC");
+                        return false;
                     }
                     break;
                 case 11:

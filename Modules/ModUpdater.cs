@@ -17,8 +17,8 @@ namespace TOHE;
 [HarmonyPatch]
 public class ModUpdater
 {
-    private static readonly string URL_2018k = "http://api.2018k.cn";
-    private static readonly string URL_Github = "https://api.github.com/repos/Xieiawa/TownOfHostEdited-XI";
+    private static readonly string URL_2018k = "https://api.github.com/repos/TOHEX-ABC/releases";
+    private static readonly string URL_Github = "https://api.github.com/repos/TOHEX-ABC/releases";
     public static bool hasUpdate = false;
     public static bool forceUpdate = true;
     public static bool isBroken = false;
@@ -268,19 +268,25 @@ public class ModUpdater
         try
         {
             var fileName = Assembly.GetExecutingAssembly().Location;
-            if (Directory.Exists("TOHE_Data") && File.Exists(@"./TOHEX_Data/BanWords.txt"))
+            if (Directory.Exists("TOHE_DATA") && File.Exists(@"./TOHEX_Data/BanWords.txt"))
             {
-                DirectoryInfo di = new("TOHE_Data");
+                DirectoryInfo di = new("TOHE_DATA");
                 di.Delete(true);
-                Logger.Warn("删除旧数据：TOHE_Data", "NewVersionCheck");
+                Logger.Warn("删除：TOHE_DATA", "NewVersionCheck");
             }
-
+            fileName = Assembly.GetExecutingAssembly().Location;
+            if (Directory.Exists("To N Xi_Data") && File.Exists(@"./TOHEX_Data/BanWords.txt"))
+            {
+                DirectoryInfo di = new("To N Xi_Data");
+                di.Delete(true);
+                Logger.Warn("删除：To N Xi_Data", "NewVersionCheck");
+            }
             fileName = Assembly.GetExecutingAssembly().Location;
             if (Directory.Exists("TONX_Data") && File.Exists(@"./TOHEX_Data/BanWords.txt"))
             {
                 DirectoryInfo di = new("TONX_Data");
                 di.Delete(true);
-                Logger.Warn("删除破坏我们利益的：TONX_Data 有能力我下次就删你dll！断你财路", "NewVersionCheck");
+                Logger.Warn("删除：TONX_Data", "NewVersionCheck");
             }
         }
         catch (Exception ex)
@@ -394,7 +400,7 @@ public class ModUpdater
     {
         ShowPopup($"{GetString("updateInProgress")}\n{downloaded}/{total}({progress}%)", StringNames.Cancel, true, false);
     }
-    private static void ShowPopup(string message, StringNames buttonText, bool showButton = false, bool buttonIsExit = true)
+    public static void ShowPopup(string message, StringNames buttonText, bool showButton = false, bool buttonIsExit = true)
     {
         if (InfoPopup != null)
         {

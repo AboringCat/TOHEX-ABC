@@ -24,14 +24,14 @@ internal class CustomRoleSelector
         int optNeutralNum = 0;
         int optNKNum = 0;
         int optHPNum = HotPotatoManager.HotQuan.GetInt();
-        int Count = -1;
+        //int Count = -1;
         if (Options.NeutralRolesMaxPlayer.GetInt() > 0 && Options.NeutralRolesMaxPlayer.GetInt() >= Options.NeutralRolesMinPlayer.GetInt())
             optNeutralNum = rd.Next(Options.NeutralRolesMinPlayer.GetInt(), Options.NeutralRolesMaxPlayer.GetInt() + 1);
         if (Options.NeutralKillersMaxPlayer.GetInt() > 0 && Options.NeutralKillersMaxPlayer.GetInt() >= Options.NeutralKillersMinPlayer.GetInt())
             optNKNum = rd.Next(Options.NeutralKillersMinPlayer.GetInt(), Options.NeutralKillersMaxPlayer.GetInt() + 1);
 
         int readyRoleNum = 0;
-        int readyDeputyNum = 0;
+        //int readyDeputyNum = 0;
         int readyPTNum = 0;
         int readyNeutralNum = 0;
         int readyNKNum = 0;
@@ -44,6 +44,7 @@ internal class CustomRoleSelector
         List<CustomRoles> potatoList = new();
         List<CustomRoles> roleOnList = new();
         List<CustomRoles> ImpOnList = new();
+        List<CustomRoles> MiniOnList = new();
         List<CustomRoles> NeutralOnList = new();
         List<CustomRoles> NKOnList = new();
         List<CustomRoles> HPotatoOnList = new();
@@ -51,8 +52,9 @@ internal class CustomRoleSelector
 
         List<CustomRoles> roleRateList = new();
         List<CustomRoles> ImpRateList = new();
+        List<CustomRoles> MiniRateList = new();
         List<CustomRoles> NeutralRateList = new();
-        List<CustomRoles> NKRateList = new(); 
+        List<CustomRoles> NKRateList = new();
         List<CustomRoles> PotatoRateList = new();
         List<CustomRoles> allPlayers = new();
 
@@ -63,7 +65,7 @@ internal class CustomRoleSelector
                 RoleResult.Add(pc, CustomRoles.KB_Normal);
             return;
         }
-        /*if (Options.CurrentGameMode == CustomGameMode.ModeArrest)
+        if (Options.CurrentGameMode == CustomGameMode.ModeArrest)
         {
             while (readyKLANum < 1)
             {
@@ -76,14 +78,14 @@ internal class CustomRoleSelector
                 if (!pc.Is(CustomRoles.captor))
                     RoleResult.Add(pc, CustomRoles.runagat);
             return;
-        }*/
+        }
         if (Options.CurrentGameMode == CustomGameMode.HotPotato)
         {
             while (readyPTNum < optHPNum)
             {
                 rolesToAssign.Add(CustomRoles.Hotpotato);
                 readyPTNum++;
-                if (readyPTNum >= optHPNum)  break;
+                if (readyPTNum >= optHPNum) break;
             }
             while (readyPTNum < playerCount)
             {
@@ -125,7 +127,7 @@ internal class CustomRoleSelector
 
             return;
         }
-        
+
         foreach (var cr in Enum.GetValues(typeof(CustomRoles)))
         {
             CustomRoles role = (CustomRoles)Enum.Parse(typeof(CustomRoles), cr.ToString());
@@ -136,23 +138,63 @@ internal class CustomRoleSelector
         }
         // 职业设置为：优先
         foreach (var role in roleList) if (role.GetMode() == 2)
-        {
-            if (role.IsImpostor()) ImpOnList.Add(role);
-            else if (!role.IsNKS() && role.IsNeutral()) NeutralOnList.Add(role);
-            else if (role.IsNKS()) NKOnList.Add(role);
+            {
+                if (role.IsMini()) MiniOnList.Add(role);
+                else if (role.IsImpostor()) ImpOnList.Add(role);
+                else if (!role.IsNKS() && role.IsNeutral()) NeutralOnList.Add(role);
+                else if (role.IsNKS()) NKOnList.Add(role);
                 else roleOnList.Add(role);
-            
-            
-        }
+
+
+            }
         // 职业设置为：启用
         foreach (var role in roleList) if (role.GetMode() == 1)
-        {
-                if (role.IsImpostor()) ImpRateList.Add(role);
+            {
+                if (role.IsMini()) MiniRateList.Add(role);
+                else if (role.IsImpostor()) ImpRateList.Add(role);
                 else if (!role.IsNKS() && role.IsNeutral()) NeutralRateList.Add(role);
                 else if (role.IsNKS()) NKRateList.Add(role);
                 else roleRateList.Add(role);
-        }
+            }
 
+
+
+        //RPCによる同期
+        foreach (var pair in Main.PlayerStates)
+        {
+            ExtendedPlayerControl.RpcSetCustomRole(pair.Key, pair.Value.MainRole);
+
+            foreach (var subRole in pair.Value.SubRoles)
+                ExtendedPlayerControl.RpcSetCustomRole(pair.Key, subRole);
+        }
+        while (MiniOnList.Count > 0)
+        {
+            var select = MiniOnList[rd.Next(0, MiniOnList.Count)];
+            MiniOnList.Remove(select);
+            NiceMini.SetMiniTeam(NiceMini.EvilMiniSpawnChances.GetFloat());
+            if (!NiceMini.IsEvilMini)
+            {
+                roleOnList.Add(CustomRoles.NiceMini);
+            }
+            if (NiceMini.IsEvilMini)
+            {
+                ImpOnList.Add(CustomRoles.EvilMini);
+            }
+        }
+        while (MiniRateList.Count > 0)
+        {
+            var select = MiniOnList[rd.Next(0, MiniOnList.Count)];
+            MiniOnList.Remove(select);
+            NiceMini.SetMiniTeam(NiceMini.EvilMiniSpawnChances.GetFloat());
+            if (!NiceMini.IsEvilMini)
+            {
+                roleRateList.Add(CustomRoles.NiceMini);
+            }
+            if (NiceMini.IsEvilMini)
+            {
+                ImpRateList.Add(CustomRoles.EvilMini);
+            }
+        }
         // 抽取优先职业（内鬼）
         while (ImpOnList.Count > 0)
         {
@@ -250,26 +292,29 @@ internal class CustomRoleSelector
                 if (readyNeutralNum >= optNeutralNum) break;
             }
         }
-
-        while (Sheriff.HasDeputy.GetBool())
+        /*if (Sheriff.HasDeputy.GetBool())
         {
-            rolesToAssign.Add(CustomRoles.Deputy);
-            readyRoleNum++;
-            readyDeputyNum++;
-            if (readyDeputyNum >= 1) goto CrewmateRandom;
-        }
-    CrewmateRandom:
+            while (readyDeputyNum < 1)
+            {
+                rolesToAssign.Add(CustomRoles.Deputy);
+                readyRoleNum++;
+                readyDeputyNum++;
+                
+            }
+        }//*/
         // 抽取优先职业
-        while (roleOnList.Count > 0)
+        if (readyRoleNum < playerCount)
         {
-            var select = roleOnList[rd.Next(0, roleOnList.Count)];
-            roleOnList.Remove(select);
-            rolesToAssign.Add(select);
-            readyRoleNum++;
-            Logger.Info(select.ToString() + " 加入船员职业待选列表（优先）", "CustomRoleSelector");
-            if (readyRoleNum >= playerCount) goto EndOfAssign;
+            while (roleOnList.Count > 0)
+            {
+                var select = roleOnList[rd.Next(0, roleOnList.Count)];
+                roleOnList.Remove(select);
+                rolesToAssign.Add(select);
+                readyRoleNum++;
+                Logger.Info(select.ToString() + " 加入船员职业待选列表（优先）", "CustomRoleSelector");
+                if (readyRoleNum >= playerCount) goto EndOfAssign;
+            }
         }
-        
         // 优先职业不足以分配，开始分配启用的职业
         if (readyRoleNum < playerCount)
         {
@@ -369,7 +414,7 @@ internal class CustomRoleSelector
             Logger.Error("职业分配错误：存在未被分配职业的玩家", "CustomRoleSelector");
         if (rolesToAssign.Count > 0)
             Logger.Error("职业分配错误：存在未被分配的职业", "CustomRoleSelector");
-    
+
 
     }
 

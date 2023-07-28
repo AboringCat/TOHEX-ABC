@@ -286,4 +286,5 @@ public enum OptionFormat
     Health,
     Level,
     Poeple,
+    Turns,
 }
