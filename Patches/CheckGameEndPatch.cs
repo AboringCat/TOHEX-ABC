@@ -4,6 +4,7 @@ using Hazel;
 using MS.Internal.Xml.XPath;
 using System.Collections.Generic;
 using System.Linq;
+using TOHE.Roles.Crewmate;
 using TOHE.Roles.Neutral;
 using static TOHE.Translator;
 using static UnityEngine.GraphicsBuffer;
@@ -62,12 +63,12 @@ class GameEndChecker
             {
                 case CustomWinner.Crewmate:
                     Main.AllPlayerControls
-                        .Where(pc => pc.Is(CustomRoleTypes.Crewmate) && !pc.Is(CustomRoles.Lovers) && !pc.Is(CustomRoles.Madmate) && !pc.Is(CustomRoles.Charmed) && !pc.Is(CustomRoles.Attendant) && !pc.Is(CustomRoles.Fugitive))
+                        .Where(pc => (pc.Is(CustomRoleTypes.Crewmate) || pc.Is(CustomRoles.CrewSchrodingerCat)) && !pc.Is(CustomRoles.Lovers) && !pc.Is(CustomRoles.CrushLovers) && !pc.Is(CustomRoles.CupidLovers) && !pc.Is(CustomRoles.Madmate) && !pc.Is(CustomRoles.Charmed) && !pc.Is(CustomRoles.Attendant) && !pc.Is(CustomRoles.Fugitive))
                         .Do(pc => CustomWinnerHolder.WinnerIds.Add(pc.PlayerId));
                     break;
                 case CustomWinner.Impostor:
                     Main.AllPlayerControls
-                        .Where(pc => (pc.Is(CustomRoleTypes.Impostor) || pc.Is(CustomRoles.Madmate)) && !pc.Is(CustomRoles.Lovers) && !pc.Is(CustomRoles.Charmed) && !pc.Is(CustomRoles.Attendant) && !pc.Is(CustomRoles.seniormanagement))
+                        .Where(pc => (pc.Is(CustomRoleTypes.Impostor) || pc.Is(CustomRoles.Madmate) || pc.Is(CustomRoles.ImpostorSchrodingerCat)) && !pc.Is(CustomRoles.Lovers) && !pc.Is(CustomRoles.CrushLovers) && !pc.Is(CustomRoles.CupidLovers) && !pc.Is(CustomRoles.Charmed) && !pc.Is(CustomRoles.Attendant) && !pc.Is(CustomRoles.seniormanagement))
                         .Do(pc => CustomWinnerHolder.WinnerIds.Add(pc.PlayerId));
                     break;
                 case CustomWinner.Succubus:
@@ -77,12 +78,17 @@ class GameEndChecker
                     break;
                 case CustomWinner.Jackal:
                     Main.AllPlayerControls
-                        .Where(pc => pc.Is(CustomRoles.Jackal) || pc.Is(CustomRoles.Attendant) || pc.Is(CustomRoles.Whoops) || pc.Is(CustomRoles.Sidekick))
+                        .Where(pc => pc.Is(CustomRoles.Jackal) || pc.Is(CustomRoles.Attendant) || pc.Is(CustomRoles.Whoops) || pc.Is(CustomRoles.Sidekick) || pc.Is(CustomRoles.JSchrodingerCat))
+                        .Do(pc => CustomWinnerHolder.WinnerIds.Add(pc.PlayerId));
+                    break;
+                case CustomWinner.CupidLovers:
+                    Main.AllPlayerControls
+                        .Where(pc => pc.Is(CustomRoles.Cupid) || pc.Is(CustomRoles.CupidLovers))
                         .Do(pc => CustomWinnerHolder.WinnerIds.Add(pc.PlayerId));
                     break;
                 case CustomWinner.YinLang:
                     Main.AllPlayerControls
-                        .Where(pc => pc.Is(CustomRoles.YinLang))
+                        .Where(pc => pc.Is(CustomRoles.YinLang) || pc.Is(CustomRoles.YLSchrodingerCat))
                         .Do(pc => CustomWinnerHolder.WinnerIds.Add(pc.PlayerId));
                     break;
                 case CustomWinner.captor:
@@ -98,6 +104,21 @@ class GameEndChecker
                 case CustomWinner.MengJiangGirl:
                     Main.AllPlayerControls
                         .Where(pc => pc.Is(CustomRoles.MengJiangGirl))
+                        .Do(pc => CustomWinnerHolder.WinnerIds.Add(pc.PlayerId));
+                    break;
+                case CustomWinner.BloodKnight:
+                    Main.AllPlayerControls
+                        .Where(pc => pc.Is(CustomRoles.BloodKnight) || pc.Is(CustomRoles.BloodSchrodingerCat))
+                        .Do(pc => CustomWinnerHolder.WinnerIds.Add(pc.PlayerId));
+                    break;
+                case CustomWinner.Gamer:
+                    Main.AllPlayerControls
+                        .Where(pc => pc.Is(CustomRoles.Gamer) || pc.Is(CustomRoles.GamerSchrodingerCat))
+                        .Do(pc => CustomWinnerHolder.WinnerIds.Add(pc.PlayerId));
+                    break;
+                case CustomWinner.PlaguesGod:
+                    Main.AllPlayerControls
+                        .Where(pc => pc.Is(CustomRoles.PlaguesGod) || pc.Is(CustomRoles.PGSchrodingerCat))
                         .Do(pc => CustomWinnerHolder.WinnerIds.Add(pc.PlayerId));
                     break;
             }
@@ -153,9 +174,8 @@ class GameEndChecker
                         .Where(p => p.Is(CustomRoles.God) && p.IsAlive())
                         .Do(p => CustomWinnerHolder.WinnerIds.Add(p.PlayerId));
                 }
-
                 //恋人抢夺胜利
-                else if (CustomRolesHelper.RoleExist(CustomRoles.Lovers) && !reason.Equals(GameOverReason.HumansByTask))
+                if (CustomRolesHelper.RoleExist(CustomRoles.Lovers) && !reason.Equals(GameOverReason.HumansByTask))
                 {
                     if (!(!Main.LoversPlayers.ToArray().All(p => p.IsAlive()) && Options.LoverSuicide.GetBool()))
                     {
@@ -166,6 +186,75 @@ class GameEndChecker
                                 .Where(p => p.Is(CustomRoles.Lovers))
                                 .Do(p => CustomWinnerHolder.WinnerIds.Add(p.PlayerId));
                         }
+                        else if (CustomWinnerHolder.WinnerTeam is CustomWinner.CrushLovers or CustomWinner.CupidLovers)
+                        {
+                            CustomWinnerHolder.AdditionalWinnerTeams.Add(AdditionalWinners.Lovers);
+                            Main.AllPlayerControls
+                                .Where(p => p.Is(CustomRoles.Lovers))
+                                .Do(p => CustomWinnerHolder.WinnerIds.Add(p.PlayerId));
+
+                        }
+                    }
+                }
+                if (CustomRolesHelper.RoleExist(CustomRoles.CrushLovers) && !reason.Equals(GameOverReason.HumansByTask))
+                {
+                    if (!(!Main.CrushLoversPlayers.ToArray().All(p => p.IsAlive()) && Options.CrushLoverSuicide.GetBool()))
+                    {
+                        if (CustomWinnerHolder.WinnerTeam is CustomWinner.Crewmate or CustomWinner.Impostor or CustomWinner.Jackal or CustomWinner.Pelican)
+                        {
+                            CustomWinnerHolder.ResetAndSetWinner(CustomWinner.CrushLovers);
+                            Main.AllPlayerControls
+                                .Where(p => p.Is(CustomRoles.CrushLovers))
+                                .Do(p => CustomWinnerHolder.WinnerIds.Add(p.PlayerId)); 
+                        }
+                        else if (CustomWinnerHolder.WinnerTeam is CustomWinner.Lovers or CustomWinner.CupidLovers)
+                        {
+                            CustomWinnerHolder.AdditionalWinnerTeams.Add(AdditionalWinners.CrushLovers);
+                            Main.AllPlayerControls
+                                .Where(p => p.Is(CustomRoles.CupidLovers))
+                                .Do(p => CustomWinnerHolder.WinnerIds.Add(p.PlayerId));
+
+                        }
+                    }
+                }
+                else if (CustomRolesHelper.RoleExist(CustomRoles.CupidLovers) && !reason.Equals(GameOverReason.HumansByTask))
+                {
+                    if (!(!Main.CupidLoversPlayers.ToArray().All(p => p.IsAlive()) && Options.CupidLoverSuicide.GetBool()))
+                    {
+                        if (CustomWinnerHolder.WinnerTeam is CustomWinner.Crewmate or CustomWinner.Impostor or CustomWinner.Jackal or CustomWinner.Pelican)
+                        {
+                            CustomWinnerHolder.ResetAndSetWinner(CustomWinner.CupidLovers);
+                            Main.AllPlayerControls
+                                .Where(p => p.Is(CustomRoles.CupidLovers) || p.Is(CustomRoles.Cupid))
+                                .Do(p => CustomWinnerHolder.WinnerIds.Add(p.PlayerId)); 
+                        }
+                        else if (CustomWinnerHolder.WinnerTeam is CustomWinner.Lovers or CustomWinner.CrushLovers)
+                        {
+                            CustomWinnerHolder.AdditionalWinnerTeams.Add(AdditionalWinners.CupidLovers);
+                            Main.AllPlayerControls
+                                .Where(p => p.Is(CustomRoles.CupidLovers) || p.Is(CustomRoles.Cupid))
+                                .Do(p => CustomWinnerHolder.WinnerIds.Add(p.PlayerId));
+                           
+                        }
+                    }
+                }
+                if (Main.DyingTurns >= Options.InjuredTurns.GetInt())
+                {
+                    foreach (var pc in Main.AllAlivePlayerControls)
+                    {
+                        if (pc.Is(CustomRoles.Injured) && pc.IsAlive())
+                        {
+                            CustomWinnerHolder.WinnerIds.Add(pc.PlayerId);
+                            CustomWinnerHolder.ResetAndSetWinner(CustomWinner.Injured);
+                        }
+                    }
+                }
+                foreach (var pc in Main.AllPlayerControls)
+                {
+                    if (pc.Is(CustomRoles.NiceMini) && !pc.IsAlive() && NiceMini.Age != 18)
+                    {
+                        CustomWinnerHolder.WinnerIds.Add(pc.PlayerId);
+                        CustomWinnerHolder.ResetAndSetWinner(CustomWinner.NiceMini);
                     }
                 }
                 ////反对者抢夺胜利
@@ -178,7 +267,7 @@ class GameEndChecker
                 //    }
                 //}
 
-                    //追加胜利
+                //追加胜利
                 foreach (var pc in Main.AllPlayerControls)
                 {
                     //Opportunist
@@ -209,16 +298,31 @@ class GameEndChecker
                         }
                     }
                     //雇佣兵胜利
-                    if (pc.Is(CustomRoles.OpportunistKiller) && pc.IsAlive())
+                    foreach (var player in Main.AllPlayerControls)
                     {
-                        CustomWinnerHolder.WinnerIds.Add(pc.PlayerId);
-                        CustomWinnerHolder.AdditionalWinnerTeams.Add(AdditionalWinners.OpportunistKiller);
-                    }
-                    //雇佣猫胜利
-                    if (pc.Is(CustomRoles.OKSchrodingerCat) && pc.IsAlive())
-                    {
-                        CustomWinnerHolder.WinnerIds.Add(pc.PlayerId);
-                        CustomWinnerHolder.AdditionalWinnerTeams.Add(AdditionalWinners.OKC);
+                        if (pc.Is(CustomRoles.OpportunistKiller) && pc.IsAlive() || player.Is(CustomRoles.OKSchrodingerCat) && player.IsAlive())
+                        {
+                            CustomWinnerHolder.WinnerIds.Add(pc.PlayerId);
+                            CustomWinnerHolder.WinnerIds.Add(player.PlayerId);
+                            CustomWinnerHolder.AdditionalWinnerTeams.Add(AdditionalWinners.OpportunistKiller);
+                            CustomWinnerHolder.AdditionalWinnerTeams.Add(AdditionalWinners.OKC);
+                        }
+                        else if (pc.Is(CustomRoles.OpportunistKiller) && pc.IsAlive() && player.Is(CustomRoles.OKSchrodingerCat) && !player.IsAlive())
+                        {
+                            CustomWinnerHolder.WinnerIds.Add(pc.PlayerId);
+                            CustomWinnerHolder.WinnerIds.Add(player.PlayerId);
+                            CustomWinnerHolder.AdditionalWinnerTeams.Add(AdditionalWinners.OpportunistKiller);
+                            CustomWinnerHolder.AdditionalWinnerTeams.Add(AdditionalWinners.OKC);
+
+                        }
+                        else if (pc.Is(CustomRoles.OpportunistKiller) && !pc.IsAlive() && player.Is(CustomRoles.OKSchrodingerCat) && player.IsAlive())
+                        {
+                            CustomWinnerHolder.WinnerIds.Add(pc.PlayerId);
+                            CustomWinnerHolder.WinnerIds.Add(player.PlayerId);
+                            CustomWinnerHolder.AdditionalWinnerTeams.Add(AdditionalWinners.OpportunistKiller);
+                            CustomWinnerHolder.AdditionalWinnerTeams.Add(AdditionalWinners.OKC);
+
+                        }
                     }
                     //自由人免费辣
                     if (pc.Is(CustomRoles.FreeMan) && pc.IsAlive())
@@ -246,13 +350,35 @@ class GameEndChecker
                         }
                     }
                 }
+                if (CustomWinnerHolder.WinnerTeam is not CustomWinner.CrushLovers and not CustomWinner.Crewmate and not CustomWinner.Impostor)
+                {
+                    foreach (var pc in Main.AllPlayerControls.Where(x => x.Is(CustomRoles.CrushLovers)))
+                    {
+                        if (CustomWinnerHolder.WinnerIds.Where(x => Utils.GetPlayerById(x).Is(CustomRoles.CrushLovers)).Count() > 0)
+                        {
+                            CustomWinnerHolder.WinnerIds.Add(pc.PlayerId);
+                            CustomWinnerHolder.AdditionalWinnerTeams.Add(AdditionalWinners.CrushLovers);
+                        }
+                    }
+                }
+                if (CustomWinnerHolder.WinnerTeam is not CustomWinner.CupidLovers and not CustomWinner.Crewmate and not CustomWinner.Impostor)
+                {
+                    foreach (var pc in Main.AllPlayerControls.Where(x => x.Is(CustomRoles.CupidLovers)))
+                    {
+                        if (CustomWinnerHolder.WinnerIds.Where(x => Utils.GetPlayerById(x).Is(CustomRoles.CupidLovers)).Count() > 0)
+                        {
+                            CustomWinnerHolder.WinnerIds.Add(pc.PlayerId);
+                            CustomWinnerHolder.AdditionalWinnerTeams.Add(AdditionalWinners.CupidLovers);
+                        }
+                    }
+                }
 
                 //FFF
                 if (CustomWinnerHolder.WinnerTeam != CustomWinner.Lovers && !CustomWinnerHolder.AdditionalWinnerTeams.Contains(AdditionalWinners.Lovers) && !CustomRolesHelper.RoleExist(CustomRoles.Lovers) && !CustomRolesHelper.RoleExist(CustomRoles.Ntr))
                 {
                     foreach (var pc in Main.AllPlayerControls.Where(x => x.Is(CustomRoles.FFF)))
                     {
-                        if (Main.AllPlayerControls.Where(x => (x.Is(CustomRoles.Lovers) || x.Is(CustomRoles.Ntr)) && x.GetRealKiller()?.PlayerId == pc.PlayerId).Count() > 0)
+                        if (Main.AllPlayerControls.Where(x => (x.Is(CustomRoles.Lovers) || x.Is(CustomRoles.Ntr) || x.Is(CustomRoles.CrushLovers) || x.Is(CustomRoles.CupidLovers)) && x.GetRealKiller()?.PlayerId == pc.PlayerId).Count() > 0)
                         {
                             CustomWinnerHolder.WinnerIds.Add(pc.PlayerId);
                             CustomWinnerHolder.AdditionalWinnerTeams.Add(AdditionalWinners.FFF);
@@ -318,6 +444,19 @@ class GameEndChecker
                 {
                     Main.AllPlayerControls
                                 .Where(p => p.Is(CustomRoles.Lovers) && !CustomWinnerHolder.WinnerIds.Contains(p.PlayerId))
+                                .Do(p => CustomWinnerHolder.WinnerIds.Add(p.PlayerId));
+                }
+                //补充恋人胜利名单
+                if (CustomWinnerHolder.WinnerTeam == CustomWinner.CrushLovers || CustomWinnerHolder.AdditionalWinnerTeams.Contains(AdditionalWinners.CrushLovers))
+                {
+                    Main.AllPlayerControls
+                                .Where(p => p.Is(CustomRoles.CrushLovers) && !CustomWinnerHolder.WinnerIds.Contains(p.PlayerId))
+                                .Do(p => CustomWinnerHolder.WinnerIds.Add(p.PlayerId));
+                }
+                if (CustomWinnerHolder.WinnerTeam == CustomWinner.CupidLovers || CustomWinnerHolder.AdditionalWinnerTeams.Contains(AdditionalWinners.CupidLovers))
+                {
+                    Main.AllPlayerControls
+                                .Where(p => p.Is(CustomRoles.CupidLovers) && !CustomWinnerHolder.WinnerIds.Contains(p.PlayerId))
                                 .Do(p => CustomWinnerHolder.WinnerIds.Add(p.PlayerId));
                 }
 
@@ -460,6 +599,16 @@ class GameEndChecker
             {
                 reason = GameOverReason.ImpostorByKill;
                 CustomWinnerHolder.ResetAndSetWinner(CustomWinner.Lovers);
+            }
+            else if (Main.AllAlivePlayerControls.All(p => p.Is(CustomRoles.CrushLovers))) //暗恋恋人胜利
+            {
+                reason = GameOverReason.ImpostorByKill;
+                CustomWinnerHolder.ResetAndSetWinner(CustomWinner.CrushLovers);
+            }
+            else if (Main.AllAlivePlayerControls.All(p => p.Is(CustomRoles.CupidLovers))) //丘比特恋人胜利
+            {
+                reason = GameOverReason.ImpostorByKill;
+                CustomWinnerHolder.ResetAndSetWinner(CustomWinner.CupidLovers);
             }
             else if (Jackal == 0 && Pel == 0 && Gam == 0 && BK == 0 && CM == 0 && Crew <= Imp && YinLang == 0 && PG == 0) //内鬼胜利
             {

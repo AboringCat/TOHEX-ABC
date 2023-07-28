@@ -72,6 +72,7 @@ class RepairSystemPatch
         {
             if (player.Is(CustomRoleTypes.Impostor) && !player.Is(CustomRoles.Minimalism) && (player.IsAlive() || !Options.DeadImpCantSabotage.GetBool())) return true;
             if (player.Is(CustomRoles.Jackal) && Jackal.CanUseSabotage.GetBool()) return true;
+            if (player.Is(CustomRoles.EvilMini)) return true;
             if (player.Is(CustomRoles.ET)) return true;
             return false;
         }

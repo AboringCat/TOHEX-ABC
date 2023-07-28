@@ -14,6 +14,7 @@ using UnityEngine;
 using static TOHE.ChatCommands;
 using static TOHE.Translator;
 using static UnityEngine.GraphicsBuffer;
+using static UnityEngine.ParticleSystem.PlaybackState;
 
 namespace TOHE;
 
@@ -481,8 +482,48 @@ class CheckForEndVotingPatch
         foreach (var playerId in playerIds)
         {
             //Loversの後追い
+            if (CustomRoles.Crush.IsEnable() && !Main.isCrushLoversDead && Main.CrushLoversPlayers.Find(lp => lp.PlayerId == playerId) != null)
+                FixedUpdatePatch.CrushLoversSuicide(playerId, true);
+            //道連れチェック
+            RevengeOnExile(playerId, deathReason);
+        }
+        foreach (var playerId in playerIds)
+        {
+            //Loversの後追い
+            if (CustomRoles.Cupid.IsEnable() && !Main.isCupidLoversDead && Main.CupidLoversPlayers.Find(lp => lp.PlayerId == playerId) != null)
+                FixedUpdatePatch.CupidLoversSuicide(playerId, true);
+            //道連れチェック
+            RevengeOnExile(playerId, deathReason);
+        }
+        foreach (var playerId in playerIds)
+        {
+            //Loversの後追い
             if (CustomRoles.Captain.IsEnable() && !Main.isseniormanagementDead)
                 FixedUpdatePatch.CaptainSuicide(playerId, true);
+            //道連れチェック
+            RevengeOnExile(playerId, deathReason);
+        }
+        foreach (var playerId in playerIds)
+        {
+            //Loversの後追い
+            if (CustomRoles.Jackal.IsEnable() && !Main.isjackalDead)
+                FixedUpdatePatch.JackalSuicide(playerId, true);
+            //道連れチェック
+            RevengeOnExile(playerId, deathReason);
+        }
+        foreach (var playerId in playerIds)
+        {
+            //Loversの後追い
+            if (CustomRoles.Sheriff.IsEnable() && !Main.isSheriffDead)
+                //FixedUpdatePatch.SheriffSuicide(playerId, true);
+            //道連れチェック
+            RevengeOnExile(playerId, deathReason);
+        }
+        foreach (var playerId in playerIds)
+        {
+            //Loversの後追い
+            if (CustomRoles.Hunter.IsEnable() && !Main.isseniormanagementDead)
+                FixedUpdatePatch.HunterSuicide(playerId, true);
             //道連れチェック
             RevengeOnExile(playerId, deathReason);
         }
@@ -866,6 +907,9 @@ class MeetingHudStartPatch
                 pc.AmOwner || //対象がLocalPlayer
                 (Main.VisibleTasksCount && PlayerControl.LocalPlayer.Data.IsDead && Options.GhostCanSeeOtherRoles.GetBool()) || //LocalPlayerが死亡していて幽霊が他人の役職を見れるとき
                 (pc.Is(CustomRoles.Lovers) && PlayerControl.LocalPlayer.Is(CustomRoles.Lovers) && Options.LoverKnowRoles.GetBool()) ||
+                (pc.Is(CustomRoles.CrushLovers) && PlayerControl.LocalPlayer.Is(CustomRoles.CrushLovers) && Options.CrushLoverKnowRoles.GetBool()) ||
+                (pc.Is(CustomRoles.CupidLovers) && PlayerControl.LocalPlayer.Is(CustomRoles.CupidLovers) && Options.CupidLoverKnowRoles.GetBool()) ||
+                (pc.Is(CustomRoles.CupidLovers) && PlayerControl.LocalPlayer.Is(CustomRoles.Cupid) && Options.CanKnowCupid.GetBool()) ||
                 (pc.Is(CustomRoleTypes.Impostor) && PlayerControl.LocalPlayer.Is(CustomRoleTypes.Impostor) && Options.ImpKnowAlliesRole.GetBool()) ||
                 (pc.Is(CustomRoleTypes.Impostor) && PlayerControl.LocalPlayer.Is(CustomRoles.Madmate) && Options.MadmateKnowWhosImp.GetBool()) ||
                 (pc.Is(CustomRoles.Madmate) && PlayerControl.LocalPlayer.Is(CustomRoleTypes.Impostor) && Options.ImpKnowWhosMadmate.GetBool()) ||
@@ -874,6 +918,39 @@ class MeetingHudStartPatch
                 (Succubus.KnowRole(PlayerControl.LocalPlayer, pc)) ||
                 (Captain.KnowRole(PlayerControl.LocalPlayer, pc)) ||
                 (Jackal.KnowRole(PlayerControl.LocalPlayer, pc)) ||
+                (Corpse.KnowRole(PlayerControl.LocalPlayer, pc)) || 
+            //喵喵队
+            //内鬼
+                    (pc.Is(CustomRoles.ImpostorSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoleTypes.Impostor) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoleTypes.Impostor) && PlayerControl.LocalPlayer.Is(CustomRoles.ImpostorSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
+            //豺狼
+                    (pc.Is(CustomRoles.JSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.Jackal) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.Jackal) && PlayerControl.LocalPlayer.Is(CustomRoles.JSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.JSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.Sidekick) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.Sidekick) && PlayerControl.LocalPlayer.Is(CustomRoles.JSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.JSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.Whoops) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.Whoops) && PlayerControl.LocalPlayer.Is(CustomRoles.JSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.JSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.Attendant) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.Attendant) && PlayerControl.LocalPlayer.Is(CustomRoles.JSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
+            //西风骑士团(bushi)
+                    (pc.Is(CustomRoles.BloodSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.BloodKnight) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.BloodKnight) && PlayerControl.LocalPlayer.Is(CustomRoles.BloodSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
+            //疫情的源头
+                    (pc.Is(CustomRoles.PGSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.PlaguesGod) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.PlaguesGod) && PlayerControl.LocalPlayer.Is(CustomRoles.PGSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
+            //玩家
+                    (pc.Is(CustomRoles.GamerSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.Gamer) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.Gamer) && PlayerControl.LocalPlayer.Is(CustomRoles.GamerSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
+            //穹P黑客(BUSHI)
+                    (pc.Is(CustomRoles.YLSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.YinLang) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.YinLang) && PlayerControl.LocalPlayer.Is(CustomRoles.YLSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
+            //黑，真tm黑
+                    (pc.Is(CustomRoles.DHSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.DarkHide) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.DarkHide) && PlayerControl.LocalPlayer.Is(CustomRoles.DHSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
+            //雇佣
+                    (pc.Is(CustomRoles.OKSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.OpportunistKiller) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.OpportunistKiller) && PlayerControl.LocalPlayer.Is(CustomRoles.OKSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
+                    
                 PlayerControl.LocalPlayer.Is(CustomRoles.God) ||
                 PlayerControl.LocalPlayer.Is(CustomRoles.GM) ||
                 Main.GodMode.Value;
@@ -987,6 +1064,11 @@ class MeetingHudStartPatch
                         pva.NameText.text = Utils.ColorString(Utils.GetRoleColor(CustomRoles.Judge), target.PlayerId.ToString()) + " " + pva.NameText.text;
 
                     break;
+                case CustomRoles.Strikers :
+                    if (!seer.Data.IsDead && !target.Data.IsDead)
+                        pva.NameText.text = Utils.ColorString(Utils.GetRoleColor(CustomRoles.Judge), target.PlayerId.ToString()) + " " + pva.NameText.text;
+
+                    break;
                 case CustomRoles.Medicaler:
                     sb.Append(Medicaler.TargetMark(seer, target));
                     break;
@@ -1010,11 +1092,39 @@ class MeetingHudStartPatch
                         break;
                 }
             }
+            bool isCrushLover = false;
+            foreach (var subRole in target.GetCustomSubRoles())
+            {
+                switch (subRole)
+                {
+                    case CustomRoles.CrushLovers:
+                        if (seer.Is(CustomRoles.CrushLovers) || seer.Data.IsDead)
+                        {
+                            sb.Append(Utils.ColorString(Utils.GetRoleColor(CustomRoles.CrushLovers), "♡"));
+                            isCrushLover = true;
+                        }
+                        break;
+                }
+            }
+            bool isCupidLover = false;
+            foreach (var subRole in target.GetCustomSubRoles())
+            {
+                switch (subRole)
+                {
+                    case CustomRoles.CupidLovers:
+                        if (seer.Is(CustomRoles.CupidLovers) || seer.Data.IsDead)
+                        {
+                            sb.Append(Utils.ColorString(Utils.GetRoleColor(CustomRoles.CupidLovers), "♡"));
+                            isCupidLover = true;
+                        }
+                        break;
+                }
+            }
 
             //海王相关显示
-            if ((seer.Is(CustomRoles.Ntr) || target.Is(CustomRoles.Ntr)) && !seer.Data.IsDead && !isLover)
+            if ((seer.Is(CustomRoles.Ntr) || target.Is(CustomRoles.Ntr)) && !seer.Data.IsDead && !isLover && !isCrushLover && !isCupidLover)
                 sb.Append(Utils.ColorString(Utils.GetRoleColor(CustomRoles.Lovers), "♡"));
-            else if (seer == target && CustomRolesHelper.RoleExist(CustomRoles.Ntr) && !isLover)
+            else if (seer == target && CustomRolesHelper.RoleExist(CustomRoles.Ntr) && !isLover && !isCrushLover && !isCupidLover)
                 sb.Append(Utils.ColorString(Utils.GetRoleColor(CustomRoles.Lovers), "♡"));
 
             //呪われている場合
@@ -1023,6 +1133,12 @@ class MeetingHudStartPatch
             //如果是大明星
             if (target.Is(CustomRoles.SuperStar) && Options.EveryOneKnowSuperStar.GetBool())
                 sb.Append(Utils.ColorString(Utils.GetRoleColor(CustomRoles.SuperStar), "★"));
+            //迷你船员
+            if (target.Is(CustomRoles.NiceMini) && NiceMini.EveryoneCanKnowMini.GetBool())
+                sb.Append(Utils.ColorString(Color.yellow, NiceMini.Age != 18 ? $"({NiceMini.Age})" : ""));
+            //迷你船员
+            if (target.Is(CustomRoles.EvilMini) && NiceMini.EveryoneCanKnowMini.GetBool())
+                sb.Append(Utils.ColorString(Color.yellow, NiceMini.Age != 18 ? $"({NiceMini.Age})" : ""));
             //if QL
             if (target.Is(CustomRoles.QL) && Options.EveryOneKnowQL.GetBool())
                 sb.Append(Utils.ColorString(Utils.GetRoleColor(CustomRoles.QL), "♛"));
@@ -1100,13 +1216,14 @@ class MeetingHudUpdatePatch
             __instance.playerStates.Where(x => (!Main.PlayerStates.TryGetValue(x.TargetPlayerId, out var ps) || ps.IsDead) && !x.AmDead).Do(x => x.SetDead(x.DidReport, true));
 
             //若玩家死亡则销毁技能按钮
-            if (myRole is CustomRoles.NiceGuesser or CustomRoles.EvilGuesser or CustomRoles.Judge && !PlayerControl.LocalPlayer.IsAlive())
+            if (myRole is CustomRoles.NiceGuesser or CustomRoles.EvilGuesser or CustomRoles.Judge or CustomRoles.Strikers && !PlayerControl.LocalPlayer.IsAlive())
                 ClearShootButton(__instance, true);
 
             //若黑手党死亡则创建技能按钮
             if (myRole is CustomRoles.Mafia && !PlayerControl.LocalPlayer.IsAlive() && GameObject.Find("ShootButton") == null)
                 MafiaRevengeManager.CreateJudgeButton(__instance);
-
+            
+           
             //销毁死亡玩家身上的技能按钮
             ClearShootButton(__instance);
 

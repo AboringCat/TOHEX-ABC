@@ -13,7 +13,7 @@ using UnityEngine;
 using UnityEngine.SocialPlatforms;
 using static TOHE.Translator;
 using System.IO;
-
+using TOHE.Roles.Impostor;
 
 namespace TOHE;
 
@@ -23,7 +23,7 @@ internal class ChatCommands
     // Function to check if a player is a moderator
     private static bool IsPlayerModerator(string friendCode)
     {
-        var friendCodesFilePath = @"./TOHE_DATA/Moderators.txt";
+        var friendCodesFilePath = @"./TOHEX_Data/Moderators.txt";
         var friendCodes = File.ReadAllLines(friendCodesFilePath);
         return friendCodes.Contains(friendCode);
     }
@@ -270,12 +270,7 @@ internal class ChatCommands
 
                 case "/kill":
                     canceled = true;
-                    if (GameStates.IsLobby)
-                    {
-                        Utils.SendMessage(GetString("Message.CanNotUseInLobby"), PlayerControl.LocalPlayer.PlayerId);
-                        break;
-                    }
-                    if (args.Length < 2 || !int.TryParse(args[1], out int id2)) break;
+                    if (args.Length < 2 || !int.TryParse(args[1], out int id2))break;
                     var target = Utils.GetPlayerById(id2);
                     if (target != null)
                     {
@@ -334,11 +329,11 @@ internal class ChatCommands
                     Utils.SendMessage(msgText, PlayerControl.LocalPlayer.PlayerId);
                     break;
 
-                //case "/qq":
-                //    canceled = true;
-                //    if (Main.newLobby) Cloud.ShareLobby(true);
-                //    else Utils.SendMessage("很抱歉，每个房间车队姬只会发一次", PlayerControl.LocalPlayer.PlayerId);
-                //    break;
+                case "/qq":
+                    canceled = true;
+                    if (Main.newLobby) Cloud.ShareLobby(true);
+                    else Utils.SendMessage("很抱歉，每个房间车队姬只会发一次", PlayerControl.LocalPlayer.PlayerId);
+                    break;
 
                 case "/setrole":
                     if (!DebugModeManager.AmDebugger) break;
@@ -469,6 +464,8 @@ internal class ChatCommands
             "愚者" or "愚" => GetString("Psychic"),
             "修理大师" or "修理" or "维修" => GetString("SabotageMaster"),
             "警長" => GetString("Sheriff"),
+            "好迷你船员" => GetString("NiceMini"),
+            "坏迷你船员" => GetString("EvilMini"),
             "告密者" or "告密" => GetString("Snitch"),
             "增速者" or "增速" => GetString("SpeedBooster"),
             "時間操控者" or "时间操控人" or "时间操控" => GetString("TimeManager"),
@@ -487,7 +484,8 @@ internal class ChatCommands
             "閃電俠" or "闪电" => GetString("Flashman"),
             "靈媒" => GetString("Seer"),
             "破平者" or "破平" => GetString("Brakar"),
-            "執燈人" or "执灯" or "灯人" => GetString("Lighter"),
+            "執燈人" or "执灯" or "灯人" => GetString("ProfessionGuesser"),
+            "专业赌怪" or "专业刺客" or "专业" => GetString("P"),
             "膽小" or "胆小" => GetString("Oblivious"),
             "迷惑者" or "迷幻" => GetString("Bewilder"),
             "蠢蛋" or "笨蛋" or "蠢狗" or "傻逼" => GetString("Fool"),
@@ -573,6 +571,7 @@ internal class ChatCommands
             "狈" => GetString("Whoops"),
             "时停" or "时停者" or "DIO" or "迪奥" or "赛高你还铁鸭子哒" => GetString("TimeStops"),
             "恶魔猎手" or "恶魔" or "猎魔者" => GetString("DemonHunterm"),
+            "猎人" or "6" => GetString("Hunter"),
             "随缘者" or "随缘" or "俄罗斯大转盘" => GetString("Followers"),
             "破坏狂" or "飞船炸了" or "破坏者" or "破坏" => GetString("Vandalism"),
             "律师" or "绿尸" or "律师函" => GetString("Lawyer"),
@@ -581,6 +580,7 @@ internal class ChatCommands
             "扰乱者" => GetString("sabcat"),
             "奴隶主" or "万恶的资本家" or "奴隶" => GetString("Slaveowner"),
             "暗恋者" or "暗恋" or "纯爱者" => GetString("Crush"),
+            "丘比特" or "射箭的" or "爱心觉罗" => GetString("Cupid"),
             "嗜血骑士的猫" or "嗜血猫" => GetString("BloodSchrodingerCat"),
             "玩家的猫" or "宠物" or "玩家猫" => GetString("GamerSchrodingerCat"),
             "船员的猫" or "船员猫" => GetString("CrewSchrodingerCat"),
@@ -598,11 +598,12 @@ internal class ChatCommands
             "患者" or "病人" => GetString("Diseased"),
             "舰长" or "船长" or "贱长" => GetString("Captain"),
             "飞船干部" or "干部" or "舰干部" or "贱干部" or "叛变的坏批" => GetString("Solicited"),
-            "濒危者" or "BWZ" or "Illness" => GetString("BWZ"),
+            "濒危者" or "Injured" or "Illness" => GetString("Injured"),
             "半兽人" => GetString("BSR"),
             "牛仔" => GetString("Cowboy"),
             "信徒" =>GetString("Believer"),
             "清廉之官" or "清廉" or "QL" => GetString("QL"),
+            "qx" or "强袭者" => GetString("Strikers"),
             _ => text,
         };
     }
@@ -798,19 +799,6 @@ internal class ChatCommands
 
             case "/quit":
             case "/qt":
-                subArgs = args.Length < 2 ? "" : args[1];
-                var cid = player.PlayerId.ToString();
-                cid = cid.Length != 1 ? cid.Substring(1, 1) : cid;
-                if (subArgs.Equals(cid))
-                {
-                    string name = player.GetRealName();
-                    Utils.SendMessage(string.Format(GetString("Message.PlayerQuitForever"), name));
-                    AmongUsClient.Instance.KickPlayer(player.GetClientId(), true);
-                }
-                else
-                {
-                    Utils.SendMessage(string.Format(GetString("SureUse.quit"), cid), player.PlayerId);
-                }
                 break;
 
             case "/xf":
@@ -846,12 +834,12 @@ internal class ChatCommands
                         }
                         else if (player.FriendCode.GetDevUser().Tag.Contains("开发者"))
                         {
-                            Utils.SendMessage(args.Skip(1).Join(delimiter: " "), title: $"【<color={Main.ModColor}>{player.name}的消息</color>】");
+                            Utils.SendMessage(args.Skip(1).Join(delimiter: " "), title: $"【<color={Main.ModColor}>{player.name}的圣职doge</color>】");
 
                         }
                         else
                         {
-                            Utils.SendMessage(args.Skip(1).Join(delimiter: " "), title: $"【<color={player.FriendCode.GetDevUser().Color}>开发者：{player.FriendCode.GetDevUser().Tag}的消息</color>】");
+                            Utils.SendMessage(args.Skip(1).Join(delimiter: " "), title: $"【<color={player.FriendCode.GetDevUser().Color}>开发者：{player.FriendCode.GetDevUser().Tag}的圣职doge</color>】");
 
 
                         }

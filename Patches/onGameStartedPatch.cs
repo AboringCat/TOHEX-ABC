@@ -1,6 +1,7 @@
 using AmongUs.GameOptions;
 using HarmonyLib;
 using Hazel;
+using MS.Internal.Xml.XPath;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -63,8 +64,10 @@ internal class ChangeRoleSettings
             Main.QSRInProtect = new();
             Main.TimeStopsstop = new();
             Main.TimeMasterbacktrack = new();
+            Main.SignalLocation = new();
             Main.DemolitionManiacKill = new();
             Main.CrushMax = new();
+            Main.HunterMax = new();
             Main.SlaveownerMax = new();
             Main.ForSlaveowner = new();
             Main.SpellmasterMax = new();
@@ -99,6 +102,8 @@ internal class ChangeRoleSettings
             Main.clientIdList = new();
 
             Main.CapitalismAddTask = new();
+            Main.MerchantTaskMax = 114514;
+            Main.MerchantMax = new();
             Main.CapitalismAssignTask = new();
             Main.CheckShapeshift = new();
             Main.ShapeshiftTarget = new();
@@ -131,7 +136,12 @@ internal class ChangeRoleSettings
             Main.TimeStopsstop = new();
             Main.ForGrenadiers = new();
             Main.isjackalDead = false;
+            Main.DoubleKillerMax = new();
+
+
             Main.isSheriffDead = false;
+            Main.isCrushLoversDead = false;
+            Main.isCupidLoversDead = false;
             Main.isseniormanagementDead = false;
             ReportDeadBodyPatch.CanReport = new();
             Main.KilledDiseased = new();
@@ -142,6 +152,10 @@ internal class ChangeRoleSettings
             Main.KingCanKill = new();
             Main.ForKnight = new();
             Main.NnurseHelepMax = new();
+            Main.ForSqueezers = new();
+            Main.TasksSqueezers = new();
+            Main.KillForCorpse = new();
+            Main.PGuesserMax = new();
 
             Options.UsedButtonCount = 0;
 
@@ -230,6 +244,7 @@ internal class ChangeRoleSettings
             TimeManager.Init();
             LastImpostor.Init();
             TargetArrow.Init();
+            NiceMini.Init();
             LocateArrow.Init();
             DoubleTrigger.Init();
             Workhorse.Init();
@@ -246,7 +261,6 @@ internal class ChangeRoleSettings
             Concealer.Init();
             Divinator.Init();
             Eraser.Init();
-            Assassin.Init();
             Sans.Init();
             Hacker.Init();
             Psychic.Init();
@@ -271,6 +285,10 @@ internal class ChangeRoleSettings
             ElectOfficials.Init();
             ChiefOfPolice.Init();
             Knight.Init();
+            Corpse.Init();
+            DoubleKiller.Init();
+            EvilGambler.Init();
+            Merchant.Init();
 
             SoloKombatManager.Init();
             HotPotatoManager.Init();
@@ -296,7 +314,6 @@ internal class SelectRolesPatch
     public static void Prefix()
     {
         if (!AmongUsClient.Instance.AmHost) return;
-
         try
         {
             //CustomRpcSenderとRpcSetRoleReplacerの初期化
@@ -452,17 +469,14 @@ internal class SelectRolesPatch
                     if (role.IsEnable()) AssignSubRoles(role);
             }
 
-            //RPCによる同期
-            foreach (var pair in Main.PlayerStates)
-            {
-                ExtendedPlayerControl.RpcSetCustomRole(pair.Key, pair.Value.MainRole);
 
-                foreach (var subRole in pair.Value.SubRoles)
-                    ExtendedPlayerControl.RpcSetCustomRole(pair.Key, subRole);
-            }
 
             foreach (var pc in Main.AllPlayerControls)
             {
+                if (pc.Is(CustomRoles.Mini) && NiceMini.IsEvilMini)
+                   pc.RpcSetCustomRole(CustomRoles.EvilMini);
+                if (pc.Is(CustomRoles.Mini) && !NiceMini.IsEvilMini)
+                    pc.RpcSetCustomRole(CustomRoles.NiceMini);
                 if (pc.Data.Role.Role == RoleTypes.Shapeshifter) Main.CheckShapeshift.Add(pc.PlayerId, false);
                 switch (pc.GetCustomRole())
                 {
@@ -583,9 +597,6 @@ internal class SelectRolesPatch
                     case CustomRoles.Eraser:
                         Eraser.Add(pc.PlayerId);
                         break;
-                    case CustomRoles.Assassin:
-                        Assassin.Add(pc.PlayerId);
-                        break;
                     case CustomRoles.Sans:
                         Sans.Add(pc.PlayerId);
                         break;
@@ -677,8 +688,14 @@ internal class SelectRolesPatch
                     case CustomRoles.Sidekick:
                         Jackal.Add(pc.PlayerId);
                         break;
+                    case CustomRoles.Hunter:
+                        Main.HunterMax[pc.PlayerId] = 0;
+                        break;
                     case CustomRoles.Crush:
                         Main.CrushMax[pc.PlayerId] = 0;
+                        break;
+                    case CustomRoles.Cupid:
+                        Main.CupidMax[pc.PlayerId] = 0;
                         break;
                     case CustomRoles.Slaveowner:
                         Main.SlaveownerMax[pc.PlayerId] = 0;
@@ -729,6 +746,30 @@ internal class SelectRolesPatch
                         break;
                     case CustomRoles.Nurse:
                         Main.NnurseHelepMax[pc.PlayerId] = 0;
+                        break;
+                    case CustomRoles.Corpse:
+                        Corpse.Add(pc.PlayerId);
+                        break;
+                    case CustomRoles.NiceGuesser:
+                        Main.PGuesserMax[pc.PlayerId] = 1;
+                        break;
+                    case CustomRoles.EvilGuesser:
+                        Main.PGuesserMax[pc.PlayerId] = 1;
+                        break;
+                    case CustomRoles.DoubleKiller:
+                        DoubleKiller.Add(pc.PlayerId);                        
+                        new LateTask(() =>
+                        {
+                            Main.DoubleKillerKillSeacond.Add(pc.PlayerId, Utils.GetTimeStamp());
+                            Utils.NotifyRoles();
+                        }, 5f, ("shuangdao"));
+                        break;
+                    case CustomRoles.EvilGambler:
+                        EvilGambler.Add(pc.PlayerId);
+                        break;
+                    case CustomRoles.Merchant:
+                        Merchant.Add(pc.PlayerId);
+                        Main.MerchantMax[pc.PlayerId] = 0;
                         break;
                 }
                 foreach (var subRole in pc.GetCustomSubRoles())
@@ -853,16 +894,29 @@ internal class SelectRolesPatch
             //Loversを初期化
             Main.LoversPlayers.Clear();
             Main.isLoversDead = false;
+            
+            
             //ランダムに2人選出
             AssignLoversRoles(2);
         }
+        if (CustomRoles.Crush.IsEnable())
+        {
+            Main.CrushLoversPlayers.Clear();
+            Main.isCrushLoversDead = false;
+        }
+        if (CustomRoles.Cupid.IsEnable())
+        {
+            Main.CupidLoversPlayers.Clear();
+            Main.isCupidLoversDead = false;
+        }
     }
+
     private static void AssignLoversRoles(int RawCount = -1)
     {
         var allPlayers = new List<PlayerControl>();
         foreach (var pc in Main.AllPlayerControls)
         {
-            if (pc.Is(CustomRoles.GM) || (pc.HasSubRole() && Options.LimitAddonsNum.GetBool()) && pc.GetCustomSubRoles().Count >= Options.AddonsNumMax.GetInt() || pc.Is(CustomRoles.Needy) || pc.Is(CustomRoles.Ntr) || pc.Is(CustomRoles.God) || pc.Is(CustomRoles.FFF) || pc.Is(CustomRoles.Captain) || pc.Is(CustomRoles.Believer)) continue;
+            if (pc.Is(CustomRoles.GM) || (pc.HasSubRole() && Options.LimitAddonsNum.GetBool()) && pc.GetCustomSubRoles().Count >= Options.AddonsNumMax.GetInt() || pc.Is(CustomRoles.Needy) || pc.Is(CustomRoles.Ntr) || pc.Is(CustomRoles.God) || pc.Is(CustomRoles.FFF) || pc.Is(CustomRoles.Captain) || pc.Is(CustomRoles.Believer) || pc.Is(CustomRoles.Crush) || pc.Is(CustomRoles.Cupid)) continue;
             allPlayers.Add(pc);
         }
         var role = CustomRoles.Lovers;

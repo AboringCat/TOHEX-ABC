@@ -50,12 +50,7 @@ public static class HudSpritePatch
         switch (player.GetCustomRole())
         {
             case CustomRoles.Assassin:
-                if (!shapeshifting)
-                {
-                    newKillButton = CustomButton.Get("Mark");
-                    if (Assassin.MarkedPlayer.ContainsKey(player.PlayerId))
-                        newAbilityButton = CustomButton.Get("Assassinate");
-                }
+                newAbilityButton = CustomButton.Get("Assassinate");
                 break;
             case CustomRoles.Bomber:
                 newKillButton = CustomButton.Get("Bomb");
@@ -87,6 +82,9 @@ public static class HudSpritePatch
                 break;
             case CustomRoles.Medicaler:
                 newKillButton = CustomButton.Get("Shield");
+                break;
+            case CustomRoles.Strikers:
+                newKillButton = CustomButton.Get("Axe");
                 break;
             case CustomRoles.Gangster:
                 if (Gangster.CanRecruit(player.PlayerId)) newKillButton = CustomButton.Get("Sidekick");
@@ -157,6 +155,9 @@ public static class HudSpritePatch
                 newKillButton = CustomButton.Get("SeeBadorGood");
                 break;
             case CustomRoles.Crush:
+                newKillButton = CustomButton.Get("Subbus");
+                break;
+            case CustomRoles.Cupid:
                 newKillButton = CustomButton.Get("Subbus");
                 break;
             case CustomRoles.Captain:

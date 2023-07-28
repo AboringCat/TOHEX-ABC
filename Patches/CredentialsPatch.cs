@@ -154,7 +154,7 @@ internal class TitleLogoPatch
     public static GameObject HowToPlayButton;
     public static GameObject FreePlayButton;
     public static GameObject BottomButtons;
-    public static GameObject LoadingHint;
+        public static GameObject LoadingHint;
     public static GameObject ModStamp;
 
     private static void Postfix(MainMenuManager __instance)

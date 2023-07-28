@@ -7,8 +7,7 @@ using TOHE.Roles.Neutral;
 using AmongUs.GameOptions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using TOHE.Roles.Crewmate;
+using static UnityEngine.GraphicsBuffer;
 
 namespace TOHE;
 
@@ -90,6 +89,14 @@ class ExileControllerWrapUpPatch
                 {
                     CustomWinnerHolder.ResetAndSetWinner(CustomWinner.Lovers);
                 }
+                if (role == CustomRoles.CrushLovers)
+                {
+                    CustomWinnerHolder.ResetAndSetWinner(CustomWinner.CrushLovers);
+                }
+                if (role == CustomRoles.CupidLovers)
+                {
+                    CustomWinnerHolder.ResetAndSetWinner(CustomWinner.CupidLovers);
+                }
                 if (DecidedWinner) CustomWinnerHolder.ShiftWinnerAndSetWinner(CustomWinner.Jester);
                 else CustomWinnerHolder.ResetAndSetWinner(CustomWinner.Jester);
                 CustomWinnerHolder.WinnerIds.Add(exiled.PlayerId);
@@ -106,6 +113,14 @@ class ExileControllerWrapUpPatch
                 else if (role == CustomRoles.Lovers)
                 {
                     CustomWinnerHolder.ResetAndSetWinner(CustomWinner.Lovers);
+                }
+                else if (role == CustomRoles.CrushLovers)
+                {
+                    CustomWinnerHolder.ResetAndSetWinner(CustomWinner.CrushLovers);
+                }
+                else if (role == CustomRoles.CupidLovers)
+                {
+                    CustomWinnerHolder.ResetAndSetWinner(CustomWinner.CupidLovers);
                 }
                 else
                 {
@@ -128,6 +143,43 @@ class ExileControllerWrapUpPatch
                     }
                 }
             }
+            //判断内鬼辈出
+            if (exiled.GetCustomRole().IsImpostor())
+            {
+                int DefectorInt = 0;
+                int optImpNum = Main.RealOptionsData.GetInt(Int32OptionNames.NumImpostors);
+                int ImIntDead = 0;
+                int AlivePlayerRemain = 0;
+                ImIntDead++;
+                foreach (var pc in Main.AllAlivePlayerControls)
+                {
+                    AlivePlayerRemain++;
+                }
+                foreach (var player in Main.AllPlayerControls)
+                {
+                    if (!player.IsAlive() && player.GetCustomRole().IsImpostor() && !Main.KillImpostor.Contains(player.PlayerId) && !player.Is(CustomRoles.Defector) && player.PlayerId != exiled.PlayerId)
+                    {
+                        Main.KillImpostor.Add(player.PlayerId);
+                        ImIntDead++;
+
+                        foreach (var partnerPlayer in Main.AllPlayerControls)
+                        {
+                            if (ImIntDead != optImpNum) continue;
+                            if (AlivePlayerRemain < Options.DefectorRemain.GetInt())
+                            if (partnerPlayer.GetCustomRole().IsCrewmate() && partnerPlayer.CanUseKillButton() && DefectorInt == 0)
+                            {
+                                Logger.Info($"qwqwqwq", "Jackal");
+                                DefectorInt++;
+                                partnerPlayer.RpcSetCustomRole(CustomRoles.Defector);
+                                partnerPlayer.ResetKillCooldown();
+                                partnerPlayer.SetKillCooldown();
+                                partnerPlayer.RpcGuardAndKill(partnerPlayer);
+                            }
+                        }
+                    }
+                }
+            }
+            
             //判断警长被出
             if (role == CustomRoles.Sheriff)
             {
@@ -163,7 +215,40 @@ class ExileControllerWrapUpPatch
             Main.RefixCooldownDelay = Options.DefaultKillCooldown - 3f;
 
         Witch.RemoveSpelledPlayer();
-
+        if (Options.ResetTargetAfterMeeting.GetBool())
+        {
+            Main.HunterTarget.Clear();
+        }
+        Main.DyingTurns += 1;
+        foreach (PlayerControl target in Main.WrongedList)
+        {
+            if (Main.FirstDied == byte.MaxValue && target.GetCustomRole().IsCrewmate() && !target.CanUseKillButton() && Options.CanWronged.GetBool())
+            {
+                target.RpcSetCustomRole(CustomRoles.Wronged);
+                var taskState = target.GetPlayerTaskState();
+                taskState.CompletedTasksCount++;
+                taskState.CompletedTasksCount++;
+                taskState.CompletedTasksCount++;
+                taskState.CompletedTasksCount++;
+                taskState.CompletedTasksCount++;
+                taskState.CompletedTasksCount++;
+                taskState.CompletedTasksCount++;
+                taskState.CompletedTasksCount++;
+                taskState.CompletedTasksCount++;
+                taskState.CompletedTasksCount++;
+                GameData.Instance.RpcSetTasks(target.PlayerId, new byte[0]); //タスクを再配布
+                target.SyncSettings();
+                Utils.NotifyRoles(target);
+            }
+        }
+        foreach (var player in Main.AllPlayerControls)
+        {
+            if (Main.SignalLocation.ContainsKey(player.PlayerId))
+            {
+                var position = Main.SignalLocation[player.PlayerId];
+                Utils.TP(player.NetTransform, position);
+            }
+        }
         foreach (var pc in Main.AllPlayerControls)
         {
             pc.ResetKillCooldown();

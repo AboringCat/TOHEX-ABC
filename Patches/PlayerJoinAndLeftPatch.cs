@@ -13,6 +13,8 @@ using System;
 using static TOHE.Translator;
 using static TOHE.ChatCommands;
 using TOHE.Roles.Crewmate;
+using System.Linq;
+using UnityEngine;
 
 namespace TOHE;
 
@@ -23,7 +25,7 @@ class UpdateServerPatch
     
     static void Postfix(ref int __result)
     {
-        if (!GameStates.IsOnlineGame) return;
+        if (!GameStates.IsOnlineGame || Main.QSM.Value) return;
         __result = Constants.GetVersion(2222, 0, 0, 0);
         Logger.Info($"{__result}", "重置服务器版本号为（2222, 0, 0, 0)");
     }
@@ -138,7 +140,21 @@ class OnPlayerLeftPatch
                     Main.PlayerStates[pc.PlayerId].RemoveSubRole(CustomRoles.Captain);
                     Main.PlayerStates[pc.PlayerId].RemoveSubRole(CustomRoles.Solicited);
                 }
-            
+            if (data.Character.Is(CustomRoles.CrushLovers) && !data.Character.Data.IsDead)
+                foreach (var lovers in Main.CrushLoversPlayers.ToArray())
+                {
+                Main.isCrushLoversDead = true;
+                Main.CrushLoversPlayers.Remove(lovers);
+                Main.PlayerStates[lovers.PlayerId].RemoveSubRole(CustomRoles.CrushLovers);
+                }
+            if (data.Character.Is(CustomRoles.CupidLovers) && !data.Character.Data.IsDead)
+                foreach (var lovers in Main.CupidLoversPlayers.ToArray())
+                {
+                    Main.isCupidLoversDead = true;
+                    Main.CupidLoversPlayers.Remove(lovers);
+                    Main.PlayerStates[lovers.PlayerId].RemoveSubRole(CustomRoles.CupidLovers);
+                }
+
             if (data.Character.Is(CustomRoles.Jackal))
             {
                 Main.isjackalDead = true;
@@ -239,10 +255,23 @@ class CreatePlayerPatch
 {
     public static void Postfix(AmongUsClient __instance, [HarmonyArgument(0)] ClientData client)
     {
-        if (!AmongUsClient.Instance.AmHost) return;
+        if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost) return;
 
         Logger.Msg($"创建玩家数据：ID{client.Character.PlayerId}: {client.PlayerName}", "CreatePlayer");
-
+        //string version_text = "";
+        //foreach (var kvp in Main.playerVersion.OrderBy(pair => pair.Key))
+        //{
+        //    version_text += $"{kvp.Key}:{Main.AllPlayerNames[kvp.Key]}:{kvp.Value.forkId}/{kvp.Value.version}({kvp.Value.tag})\n";
+        //}
+        //client in Main.playerVersion.OrderBy(pair => pair.Key);
+        if (Options.CurrentGameMode == CustomGameMode.TOEX)
+        {
+            Logger.SendInGame(string.Format(GetString("TOEXInfo"), Application.targetFrameRate));
+        }
+        if (Options.AllModMode.GetBool())
+        {
+            Logger.SendInGame(string.Format(GetString("AllModModeInfo"), Application.targetFrameRate));
+        }
         //规范昵称
         var name = client.PlayerName;
         if (Options.FormatNameMode.GetInt() == 2 && client.Id != AmongUsClient.Instance.ClientId)
@@ -274,7 +303,7 @@ class CreatePlayerPatch
             if (Main.OverrideWelcomeMsg != "") Utils.SendMessage(Main.OverrideWelcomeMsg, client.Character.PlayerId);
             else
             {
-                Utils.SendMessage(ModUpdater.remark, client.Character.PlayerId);
+                //Utils.SendMessage(ModUpdater.remark, client.Character.PlayerId);
                 TemplateManager.SendTemplate("welcome", client.Character.PlayerId, true);
 
             }

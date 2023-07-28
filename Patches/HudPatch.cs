@@ -131,6 +131,9 @@ class HudManagerPatch
                     case CustomRoles.Medicaler:
                         __instance.KillButton.OverrideText(GetString("MedicalerButtonText"));
                         break;
+                    case CustomRoles.Strikers :
+                        __instance.KillButton.OverrideText(GetString("StrikersButtonText"));
+                        break;
                     case CustomRoles.Gamer:
                         __instance.KillButton.OverrideText(GetString("GamerButtonText"));
                         break;
@@ -154,8 +157,7 @@ class HudManagerPatch
                         __instance.KillButton.OverrideText(GetString("OverKillerButtonText"));
                         break;
                     case CustomRoles.Assassin:
-                        Assassin.SetKillButtonText(player.PlayerId);
-                        Assassin.GetAbilityButtonText(__instance, player.PlayerId);
+                        __instance.AbilityButton.OverrideText(GetString("AssassinShapeshiftText"));
                         break;
                     case CustomRoles.Hacker:
                         Hacker.GetAbilityButtonText(__instance, player.PlayerId);
@@ -242,6 +244,9 @@ class HudManagerPatch
                     case CustomRoles.Crush:
                         __instance.KillButton.OverrideText(GetString("CrushButtonText"));
                         break;
+                    case CustomRoles.Cupid:
+                        __instance.KillButton.OverrideText(GetString("CupidButtonText"));
+                        break;
                     case CustomRoles.Slaveowner:
                         __instance.KillButton.OverrideText(GetString("SlaveownerButtonText"));
                         break;
@@ -290,6 +295,12 @@ class HudManagerPatch
                         break;
                     case CustomRoles.Anglers:
                         __instance.AbilityButton.OverrideText(GetString("AnglersShapeshiftButtonText"));
+                        break;
+                    case CustomRoles.Squeezers:
+                        __instance.KillButton.OverrideText(GetString("SqueezersButtonText"));
+                        break;
+                    case CustomRoles.Merchant:
+                        __instance.KillButton.OverrideText(GetString("CounterfeiterButtonText"));
                         break;
                 }
 
@@ -471,7 +482,7 @@ class SetHudActivePatch
             case CustomRoles.Amnesiac:
             case CustomRoles.Captain:
             case CustomRoles.Knight:
-            //case CustomRoles.Swapper:
+            case CustomRoles.Merchant:
             case CustomRoles.Provocateur:
                 __instance.SabotageButton.ToggleVisible(false);
                 __instance.AbilityButton.ToggleVisible(false);
