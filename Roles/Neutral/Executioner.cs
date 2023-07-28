@@ -80,7 +80,7 @@ public static class Executioner
                 AmongUsClient.Instance.FinishRpcImmediately(writer);
                 break;
             case "":
-                if (!AmongUsClient.Instance.AmHost) return;
+                if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost) return;
                 writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.RemoveExecutionerTarget, SendOption.Reliable);
                 writer.Write(executionerId);
                 AmongUsClient.Instance.FinishRpcImmediately(writer);

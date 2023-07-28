@@ -6,6 +6,8 @@ using Hazel;
 using UnityEngine;
 using static TOHE.Options;
 using static TOHE.Translator;
+using static UnityEngine.GraphicsBuffer;
+using TOHE.Roles.Crewmate;
 
 namespace TOHE.Roles.Neutral;
 
@@ -24,7 +26,15 @@ public static class Jackal
     private static OptionItem JackalCanAttendantMax;
     private static OptionItem AttendantCanRoles;
     public static OptionItem AttendantCountMode;
-
+    public static OptionItem SidekickCanKill;
+    public static OptionItem SidekickKillCoolDown;
+    public static OptionItem SidekickCanVent;
+    public static OptionItem SidekickCanBeJackal;
+    public static OptionItem SidekickMode;
+    public static readonly string[] SidekickOption =
+{
+        "Can", "Cant"
+    };
     public static readonly string[] attendantCountMode =
     {
         "AttendantCountMode.None",
@@ -47,8 +57,41 @@ public static class Jackal
         JackalCanAttendantMax = IntegerOptionItem.Create(Id + 17, "JackalCanAttendantMax", new(1, 5, 1), 1, TabGroup.NeutralRoles, false).SetParent(JackalCanAttendant)
             .SetValueFormat(OptionFormat.Poeple);
         AttendantCanRoles = BooleanOptionItem.Create(Id + 19, "AttendantCanRoles", false, TabGroup.NeutralRoles, false).SetParent(JackalCanAttendant);
-        AttendantCountMode = StringOptionItem.Create(Id + 18, "AttendantCountMode", attendantCountMode, 0, TabGroup.NeutralRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Jackal]);
+        //SidekickMode = StringOptionItem.Create(Id + 30, "SidekickMode", SidekickOption, 0, TabGroup.NeutralRoles, false).SetParent(JackalCanAttendant);
+        AttendantCountMode = StringOptionItem.Create(Id + 18, "AttendantCountMode", attendantCountMode, 0, TabGroup.NeutralRoles, false).SetParent(AttendantCanRoles);
+
+        SidekickCanKill = BooleanOptionItem.Create(Id + 20, "SidekickCanKill", false, TabGroup.NeutralRoles, false).SetParent(JackalCanAttendant);
+        SidekickKillCoolDown = FloatOptionItem.Create(Id + 23, "SidekickKillCooldown", new(0f, 180f, 2.5f), 20f, TabGroup.NeutralRoles, false).SetParent(SidekickCanKill)
+            .SetValueFormat(OptionFormat.Seconds);
+        SidekickCanVent = BooleanOptionItem.Create(Id + 22, "SidekickCanVent", false, TabGroup.NeutralRoles, false).SetParent(JackalCanAttendant);
+        SidekickCanBeJackal = BooleanOptionItem.Create(Id + 21, "SidekickCanBeJackal", true, TabGroup.NeutralRoles, false).SetParent(JackalCanAttendant);
+
     }
+    /*public void abcd(CustomRoles role, bool AllReplace = false)
+    {
+        countTypes = Jackal.AttendantCountMode.GetInt() switch
+        {
+            0 => CountTypes.OutOfGame,
+            1 => CountTypes.Jackal,
+            2 => countTypes,
+            _ => throw new NotImplementedException()
+        };
+    }
+public static void SetUpNeutralOptions(int Id)
+    {
+        
+            SetUpKillTargetOption(neutral, Id, true, CanKillNeutralsMode);
+            
+        
+    }
+    public static void SetUpKillTargetOption(CustomRoles role, int Id, bool defaultValue = true, OptionItem parent = null)
+    {
+        parent ??= Options.CustomRoleSpawnChances[CustomRoles.Sheriff];
+        var roleName = Utils.GetRoleName(role);
+        Dictionary<string, string> replacementDic = new() { { "%role%", Utils.ColorString(Utils.GetRoleColor(role), roleName) } };
+        KillTargetOptions[role] = BooleanOptionItem.Create(Id, "SheriffCanKill%role%", defaultValue, TabGroup.CrewmateRoles, false).SetParent(parent);
+        KillTargetOptions[role].ReplacementDictionary = replacementDic;
+    }*/
     public static void Init()
     {
         playerIdList = new();
@@ -58,7 +101,7 @@ public static class Jackal
     {
         playerIdList.Add(playerId);
         AttendantLimit.TryAdd(playerId, JackalCanAttendantMax.GetInt());
-        if (!AmongUsClient.Instance.AmHost) return;
+        if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost) return;
         if (!Main.ResetCamPlayerList.Contains(playerId))
             Main.ResetCamPlayerList.Add(playerId);
     }
@@ -97,21 +140,21 @@ public static class Jackal
     public static bool OnCheckMurder(PlayerControl killer, PlayerControl target)
     {
         if (!JackalCanAttendant.GetBool() || AttendantLimit[killer.PlayerId] < 1) return false;
-        if (JackalCanAttendant.GetBool() && CanBeAttendant(target))
+        if (JackalCanAttendant.GetBool() && CanBeAttendant(target) && NiceMini.Age == 18|| JackalCanAttendant.GetBool() && CanBeAttendant(target) && NiceMini.Age != 18 && !(target.Is(CustomRoles.NiceMini) || target.Is(CustomRoles.EvilMini)))
         {
             AttendantLimit[killer.PlayerId]--;
             SendRPC(killer.PlayerId);
-            if (AttendantCanRoles.GetBool())
+            if (AttendantCanRoles.GetBool() && NiceMini.Age == 18 || AttendantCanRoles.GetBool() &&  NiceMini.Age != 18 && !(target.Is(CustomRoles.NiceMini) || target.Is(CustomRoles.EvilMini)))
             {
                 target.RpcSetCustomRole(CustomRoles.Attendant);
             }
             else
             {
-                if (!target.CanUseKillButton() && !target.Is(CustomRoles.Captain) && !target.Is(CustomRoles.Solicited) && !target.Is(CustomRoles.Believer))
+                if (!target.CanUseKillButton() && (!target.Is(CustomRoles.Captain) || !target.Is(CustomRoles.Solicited) || !target.Is(CustomRoles.Believer) || NiceMini.Age != 18 && !(target.Is(CustomRoles.NiceMini) || target.Is(CustomRoles.EvilMini))))
                 {
                     target.RpcSetCustomRole(CustomRoles.Whoops);
                 }
-                if (target.CanUseKillButton() && !target.Is(CustomRoles.Captain) && !target.Is(CustomRoles.Solicited) && !target.Is(CustomRoles.Believer))
+                if (target.CanUseKillButton() && (!target.Is(CustomRoles.Captain) || !target.Is(CustomRoles.Solicited) || !target.Is(CustomRoles.Believer) || NiceMini.Age != 18 && !(target.Is(CustomRoles.NiceMini) || target.Is(CustomRoles.EvilMini))))
                 {
                     target.RpcSetCustomRole(CustomRoles.Sidekick);
                 }
@@ -132,6 +175,10 @@ public static class Jackal
                 HudManager.Instance.KillButton.OverrideText(GetString("KillButtonText"));
             Logger.Info($"{killer.GetNameWithRole()} : 剩余{AttendantLimit[killer.PlayerId]}次招募机会", "Jackal");
             return true;
+        }
+        else if (NiceMini.Age != 18 && (target.Is(CustomRoles.NiceMini) || target.Is(CustomRoles.EvilMini)))
+        {
+            killer.Notify(Utils.ColorString(Utils.GetRoleColor(CustomRoles.Jackal), GetString("Cantkillkid")));
         }
         if (AttendantLimit[killer.PlayerId] < 0)
             HudManager.Instance.KillButton.OverrideText(GetString("KillButtonText"));
@@ -158,6 +205,7 @@ public static class Jackal
     }
     public static bool CanBeAttendant(this PlayerControl pc)
     {
-        return pc != null && (pc.GetCustomRole().IsCrewmate() || pc.GetCustomRole().IsImpostor()) && !pc.Is(CustomRoles.Captain) && !pc.Is(CustomRoles.Attendant) && !pc.Is(CustomRoles.Solicited) && !pc.Is(CustomRoles.seniormanagement) && !pc.Is(CustomRoles.Believer) && !pc.Is(CustomRoles.Gangster) || !AttendantCanRoles.GetBool() && (pc.GetCustomRole().IsCrewmate() || pc.GetCustomRole().IsImpostor() && pc.GetCustomRole().IsNeutral() && !pc.Is(CustomRoles.Captain) && !pc.Is(CustomRoles.Solicited));
+        return pc != null && AttendantCanRoles.GetBool() && pc.GetCustomRole().IsCrewmate() || AttendantCanRoles.GetBool() && pc.GetCustomRole().IsImpostor() || !pc.Is(CustomRoles.Captain) || !pc.Is(CustomRoles.Attendant) || !pc.Is(CustomRoles.Solicited) || !pc.Is(CustomRoles.seniormanagement) || !pc.Is(CustomRoles.Believer) || !pc.Is(CustomRoles.Gangster) || pc.Is(CustomRoles.NiceMini) && NiceMini.Age == 18 || pc.Is(CustomRoles.EvilMini) && NiceMini.Age == 18 || !AttendantCanRoles.GetBool() && (pc.GetCustomRole().IsCrewmate() || !AttendantCanRoles.GetBool() && pc.GetCustomRole().IsImpostor() || !AttendantCanRoles.GetBool() && pc.GetCustomRole().IsNeutral());
     }
+
 }

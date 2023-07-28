@@ -21,6 +21,7 @@ public static class FireWorks
     private static readonly int Id = 1700;
     private static OptionItem FireWorksCount;
     private static OptionItem FireWorksRadius;
+    private static OptionItem CanKillBefoerInstallAllFireWorks;
 
     public static Dictionary<byte, int> nowFireWorksCount = new();
     private static Dictionary<byte, List<Vector3>> fireWorksPosition = new();
@@ -36,6 +37,7 @@ public static class FireWorks
             .SetValueFormat(OptionFormat.Pieces);
         FireWorksRadius = FloatOptionItem.Create(Id + 11, "FireWorksRadius", new(0.5f, 5f, 0.5f), 2f, TabGroup.ImpostorRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.FireWorks])
             .SetValueFormat(OptionFormat.Multiplier);
+        CanKillBefoerInstallAllFireWorks = BooleanOptionItem.Create(Id + 13, "CKBIAFW", false, TabGroup.ImpostorRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.FireWorks]);
     }
 
     public static void Init()
@@ -76,14 +78,16 @@ public static class FireWorks
 
     public static bool CanUseKillButton(PlayerControl pc)
     {
-        //            Logger.Info($"FireWorks CanUseKillButton", "FireWorks");
         if (pc.Data.IsDead) return false;
         var canUse = false;
-        if ((state[pc.PlayerId] & FireWorksState.CanUseKill) != 0)
+        if (CanKillBefoerInstallAllFireWorks.GetBool())
         {
             canUse = true;
         }
-        //            Logger.Info($"CanUseKillButton:{canUse}", "FireWorks");
+        if ((state[pc.PlayerId] & FireWorksState.CanUseKill) != 0 && !CanKillBefoerInstallAllFireWorks.GetBool())
+        {
+            canUse = true;
+        }
         return canUse;
     }
 

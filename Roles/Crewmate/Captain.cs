@@ -41,7 +41,7 @@ public static class Captain
         playerIdList.Add(playerId);
         SolicitLimit.TryAdd(playerId, SolicitMax.GetInt());
 
-        if (!AmongUsClient.Instance.AmHost) return;
+        if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost) return;
         if (!Main.ResetCamPlayerList.Contains(playerId))
             Main.ResetCamPlayerList.Add(playerId);
     }
@@ -79,15 +79,16 @@ public static class Captain
     public static void OnCheckMurder(PlayerControl killer, PlayerControl target)
     {
         if (SolicitLimit[killer.PlayerId] < 1) return;
+        if (NiceMini.Age != 18 && !(target.Is(CustomRoles.NiceMini) || target.Is(CustomRoles.EvilMini)) || NiceMini.Age == 18)
         {
                 SolicitLimit[killer.PlayerId]--;
                 SendRPC(killer.PlayerId);
-                    if (!target.CanUseKillButton() && !target.Is(CustomRoles.Solicited) && !target.Is(CustomRoles.Believer))
+                    if (!target.CanUseKillButton() && !target.Is(CustomRoles.Solicited) || !target.Is(CustomRoles.Believer) || !target.Is(CustomRoles.NiceMini) && NiceMini.Age != 18 || !target.Is(CustomRoles.EvilMini) && NiceMini.Age != 18)
                     {
                         target.RpcSetCustomRole(CustomRoles.Solicited);
                         target.RpcSetCustomRole(CustomRoles.seniormanagement);
                     }
-                    if (target.CanUseKillButton() && !target.Is(CustomRoles.Solicited) && !target.Is(CustomRoles.Believer))
+                    if (target.CanUseKillButton() && !target.Is(CustomRoles.Solicited) || !target.Is(CustomRoles.Believer) || !target.Is(CustomRoles.NiceMini) && NiceMini.Age != 18 || !target.Is(CustomRoles.EvilMini) && NiceMini.Age != 18)
                     {
                         target.RpcSetCustomRole(CustomRoles.Solicited);
                         target.RpcSetCustomRole(CustomRoles.seniormanagement);
@@ -103,6 +104,10 @@ public static class Captain
             killer.RpcGuardAndKill(target);
             target.RpcGuardAndKill(killer);
             target.RpcGuardAndKill(target);
+        }
+        else if (NiceMini.Age != 18 && (target.Is(CustomRoles.NiceMini) || target.Is(CustomRoles.EvilMini)))
+        {
+            killer.Notify(Utils.ColorString(Utils.GetRoleColor(CustomRoles.Captain), GetString("Cantkillkid")));
         }
     }
     public static bool KnowRole(PlayerControl player, PlayerControl target)

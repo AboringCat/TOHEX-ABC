@@ -16,6 +16,8 @@ public static class Sniper
     private static OptionItem SniperPrecisionShooting;
     private static OptionItem SniperAimAssist;
     private static OptionItem SniperAimAssistOnshot;
+    private static OptionItem CanKillBeforeUseAllBullets;
+
     private static Dictionary<byte, byte> snipeTarget = new();
     private static Dictionary<byte, Vector3> snipeBasePosition = new();
     private static Dictionary<byte, Vector3> LastPosition = new();
@@ -36,6 +38,7 @@ public static class Sniper
         SniperPrecisionShooting = BooleanOptionItem.Create(Id + 11, "SniperPrecisionShooting", false, TabGroup.ImpostorRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.Sniper]);
         SniperAimAssist = BooleanOptionItem.Create(Id + 12, "SniperAimAssist", true, TabGroup.ImpostorRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.Sniper]);
         SniperAimAssistOnshot = BooleanOptionItem.Create(Id + 13, "SniperAimAssistOneshot", false, TabGroup.ImpostorRoles, false).SetParent(SniperAimAssist);
+        CanKillBeforeUseAllBullets = BooleanOptionItem.Create(Id + 14, "CKBUAB", false, TabGroup.ImpostorRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.Sniper]);
     }
     public static void Init()
     {
@@ -108,7 +111,11 @@ public static class Sniper
             Logger.Info($" Sniper not Init yet.", "Sniper");
             return false;
         }
-        if (bulletCount[pc.PlayerId] <= 0)
+        if (bulletCount[pc.PlayerId] <= 0 && !CanKillBeforeUseAllBullets.GetBool())
+        {
+            canUse = true;
+        }
+        if (CanKillBeforeUseAllBullets.GetBool())
         {
             canUse = true;
         }

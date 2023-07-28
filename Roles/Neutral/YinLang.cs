@@ -24,12 +24,12 @@ public static class YinLang
     public static int YLCS = 0;
     public static void SetupCustomOption()
     {
-        Options.SetupSingleRoleOptions(51923, TabGroup.NeutralRoles, CustomRoles.YinLang, 1, zeroOne: false);
-        YLKillCooldown = FloatOptionItem.Create(51923 + 10, "KillCooldown", new(0f, 180f, 2.5f), 20f, TabGroup.NeutralRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.YinLang])
+        Options.SetupSingleRoleOptions(Id, TabGroup.NeutralRoles, CustomRoles.YinLang, 1, zeroOne: false);
+        YLKillCooldown = FloatOptionItem.Create(Id + 10, "KillCooldown", new(0f, 180f, 2.5f), 20f, TabGroup.NeutralRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.YinLang])
             .SetValueFormat(OptionFormat.Seconds);
-        YLCanVent = BooleanOptionItem.Create(51923 + 11, "CanVent", true, TabGroup.NeutralRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.YinLang]);
-        YLHasImpostorVision = BooleanOptionItem.Create(51923 + 13, "ImpostorVision", true, TabGroup.NeutralRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.YinLang]);
-        YLSJ = FloatOptionItem.Create(51923 + 14, "YLSJ", new(1f, 10f, 1f), 3f, TabGroup.NeutralRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.YinLang]);
+        YLCanVent = BooleanOptionItem.Create(Id + 11, "CanVent", true, TabGroup.NeutralRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.YinLang]);
+        YLHasImpostorVision = BooleanOptionItem.Create(Id + 13, "ImpostorVision", true, TabGroup.NeutralRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.YinLang]);
+        YLSJ = FloatOptionItem.Create(Id + 14, "YLSJ", new(1f, 10f, 1f), 3f, TabGroup.NeutralRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.YinLang]);
 
     }
     public static void Init()

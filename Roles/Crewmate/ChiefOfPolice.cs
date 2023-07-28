@@ -39,7 +39,7 @@ public static class ChiefOfPolice
         playerIdList.Add(playerId);
         PoliceLimit.TryAdd(playerId, 1);
 
-        if (!AmongUsClient.Instance.AmHost) return;
+        if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost) return;
         if (!Main.ResetCamPlayerList.Contains(playerId))
             Main.ResetCamPlayerList.Add(playerId);
     }

@@ -14,6 +14,8 @@ public static class Judge
     private static readonly int Id = 8035678;
     private static List<byte> playerIdList = new();
     private static OptionItem TrialLimitPerMeeting;
+    private static OptionItem SetTrialLimitPerGame;
+    private static OptionItem TrialLimitPerGame;
     private static OptionItem TryHideMsg;
     private static OptionItem CanTrialMadmate;
     private static OptionItem CanTrialCharmed;
@@ -21,11 +23,15 @@ public static class Judge
     private static OptionItem CanTrialNeutralB;
     private static OptionItem CanTrialNeutralK;
     private static Dictionary<byte, int> TrialLimit;
+    private static Dictionary<byte, int> TrialAllLimit;
 
     public static void SetupCustomOption()
     {
         Options.SetupRoleOptions(Id, TabGroup.CrewmateRoles, CustomRoles.Judge);
-        TrialLimitPerMeeting = IntegerOptionItem.Create(Id + 10, "TrialLimitPerMeeting", new(1, 99, 1), 1, TabGroup.CrewmateRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.Judge])
+        TrialLimitPerMeeting = IntegerOptionItem.Create(Id + 10, "TrialLimitPerMeeting", new(1, 15, 1), 1, TabGroup.CrewmateRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.Judge])
+            .SetValueFormat(OptionFormat.Times);
+        SetTrialLimitPerGame = BooleanOptionItem.Create(Id + 18, "SetTrialLimitPerGame", false, TabGroup.CrewmateRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.Judge]);
+        TrialLimitPerGame = IntegerOptionItem.Create(Id + 17, "TrialLimitPerGame", new(1, 15, 1), 1, TabGroup.CrewmateRoles, false).SetParent(SetTrialLimitPerGame)
             .SetValueFormat(OptionFormat.Times);
         CanTrialMadmate = BooleanOptionItem.Create(Id + 12, "JudgeCanTrialMadmate", true, TabGroup.CrewmateRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.Judge]);
         CanTrialCharmed = BooleanOptionItem.Create(Id + 16, "JudgeCanTrialCharmed", true, TabGroup.CrewmateRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.Judge]);
@@ -38,12 +44,15 @@ public static class Judge
     {
         playerIdList = new();
         TrialLimit = new();
+        TrialAllLimit = new();
     }
     public static void Add(byte playerId)
     {
         playerIdList.Add(playerId);
         TrialLimit.Add(playerId, TrialLimitPerMeeting.GetInt());
-    }
+        TrialLimit.Add(playerId, TrialLimitPerGame.GetInt());
+    
+}
     public static bool IsEnable => playerIdList.Count > 0;
     public static void OnReportDeadBody()
     {
@@ -91,7 +100,7 @@ public static class Judge
             {
                 Logger.Info($"{pc.GetNameWithRole()} 审判了 {target.GetNameWithRole()}", "Judge");
                 bool judgeSuicide = true;
-                if (TrialLimit[pc.PlayerId] < 1)
+                if (TrialLimit[pc.PlayerId] < 1 || TrialAllLimit[pc.PlayerId] < 1)
                 {
                     if (!isUI) Utils.SendMessage(GetString("JudgeTrialMax"), pc.PlayerId);
                     else pc.ShowPopUp(GetString("JudgeTrialMax"));

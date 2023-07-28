@@ -31,7 +31,7 @@ public static class Knight
         playerIdList.Add(playerId);
         KnightLimit.TryAdd(playerId, SkillLimitOpt.GetInt());
 
-        if (!AmongUsClient.Instance.AmHost) return;
+        if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost) return;
         if (!Main.ResetCamPlayerList.Contains(playerId))
             Main.ResetCamPlayerList.Add(playerId);
     }
@@ -41,7 +41,7 @@ public static class Knight
         playerIdList.Remove(playerId);
         KnightLimit.Remove(playerId);
 
-        if (!AmongUsClient.Instance.AmHost) return;
+        if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost) return;
         if (Main.ResetCamPlayerList.Contains(playerId))
             Main.ResetCamPlayerList.Remove(playerId);
     }

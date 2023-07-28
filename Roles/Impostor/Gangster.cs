@@ -1,7 +1,9 @@
 ﻿using Hazel;
 using System.Collections.Generic;
+using TOHE.Roles.Crewmate;
 using UnityEngine;
 using static TOHE.Translator;
+using static UnityEngine.GraphicsBuffer;
 
 namespace TOHE.Roles.Impostor;
 
@@ -70,7 +72,12 @@ public static class Gangster
     public static bool OnCheckMurder(PlayerControl killer, PlayerControl target)
     {
         if (RecruitLimit[killer.PlayerId] < 1) return false;
-        if (CanBeMadmate(target))
+        if (target.Is(CustomRoles.NiceMini) && NiceMini.Age != 18)
+        {
+            killer.Notify(Utils.ColorString(Utils.GetRoleColor(CustomRoles.Gangster), GetString("Cantkillkid")));
+            return false;
+        }
+        else if (CanBeMadmate(target) && NiceMini.Age == 18 || CanBeMadmate(target) && !target.Is(CustomRoles.NiceMini) && NiceMini.Age != 18)
         {
             RecruitLimit[killer.PlayerId]--;
             SendRPC(killer.PlayerId);
@@ -115,7 +122,8 @@ public static class Gangster
             pc.Is(CustomRoles.Captain) ||
             pc.Is(CustomRoles.Solicited) ||
             pc.Is(CustomRoles.seniormanagement) || 
-            pc.Is(CustomRoles.Believer)
+            pc.Is(CustomRoles.Believer) ||
+            !pc.Is(CustomRoles.NiceMini) && NiceMini.Age == 18
             );
     }
 }

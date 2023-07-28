@@ -67,7 +67,7 @@ public static class Vampire
 
     public static void OnFixedUpdate(PlayerControl vampire)
     {
-        if (!AmongUsClient.Instance.AmHost || !GameStates.IsInTask) return;
+        if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost || !GameStates.IsInTask) return;
 
         var vampireID = vampire.PlayerId;
         if (!IsThisRole(vampire.PlayerId)) return;

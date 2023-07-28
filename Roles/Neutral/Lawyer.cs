@@ -83,7 +83,7 @@ public static class Lawyer
                 AmongUsClient.Instance.FinishRpcImmediately(writer);
                 break;
             case "":
-                if (!AmongUsClient.Instance.AmHost) return;
+                if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost) return;
                 writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.RemoveLawyerTarget, SendOption.Reliable);
                 writer.Write(lawyerId);
                 AmongUsClient.Instance.FinishRpcImmediately(writer);
