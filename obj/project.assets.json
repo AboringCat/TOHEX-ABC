@@ -6178,11 +6178,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\googl\\Downloads\\tohex-v1.4.2-code\\tohex-v1.4.2-code\\TOHE.csproj",
+      "projectUniqueName": "C:\\Users\\googl\\Downloads\\TOHEX\\TOHE.csproj",
       "projectName": "TOHE",
-      "projectPath": "C:\\Users\\googl\\Downloads\\tohex-v1.4.2-code\\tohex-v1.4.2-code\\TOHE.csproj",
+      "projectPath": "C:\\Users\\googl\\Downloads\\TOHEX\\TOHE.csproj",
       "packagesPath": "C:\\Users\\googl\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\googl\\Downloads\\tohex-v1.4.2-code\\tohex-v1.4.2-code\\obj\\",
+      "outputPath": "C:\\Users\\googl\\Downloads\\TOHEX\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\googl\\AppData\\Roaming\\NuGet\\NuGet.Config",

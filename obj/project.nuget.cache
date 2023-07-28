@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "iPtuuwZsOi6Yh6onlPYdOF0hLdUFFKpciAn2ss497sQVSu7N+rff4fQu5QhZhUugmenkzSqQVDigE/djwffFdg==",
+  "dgSpecHash": "dyvuQFyMlqAYdfCuUbBD8LWLviiyqVniBZR5gf7DvxPu8cOwVts2q2XbIkXIv5WxJZywpMT01gy3jPWuXAy1XA==",
   "success": true,
-  "projectFilePath": "C:\\Users\\googl\\Downloads\\tohex-v1.4.2-code\\tohex-v1.4.2-code\\TOHE.csproj",
+  "projectFilePath": "C:\\Users\\googl\\Downloads\\TOHEX\\TOHE.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\googl\\.nuget\\packages\\amongus.gamelibs.steam\\2023.7.11\\amongus.gamelibs.steam.2023.7.11.nupkg.sha512",
     "C:\\Users\\googl\\.nuget\\packages\\asmresolver\\5.1.0\\asmresolver.5.1.0.nupkg.sha512",

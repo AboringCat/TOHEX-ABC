@@ -34,29 +34,29 @@ namespace
     /// <summary>Provides access to the git information for the current assembly.</summary>
     public partial class Git
     {
-      /// <summary>IsDirty: false</summary>
-      public const bool IsDirty = false;
+      /// <summary>IsDirty: true</summary>
+      public const bool IsDirty = true;
 
-      /// <summary>IsDirtyString: false</summary>
-      public const string IsDirtyString = @"false";
+      /// <summary>IsDirtyString: true</summary>
+      public const string IsDirtyString = @"true";
 
-      /// <summary>Repository URL: </summary>
-      public const string RepositoryUrl = @"";
+      /// <summary>Repository URL: git@gitee.com:xigua_ya/tohex.git</summary>
+      public const string RepositoryUrl = @"git@gitee.com:xigua_ya/tohex.git";
 
-      /// <summary>Branch: master</summary>
-      public const string Branch = @"master";
+      /// <summary>Branch: TOHEXG</summary>
+      public const string Branch = @"TOHEXG";
 
-      /// <summary>Commit: </summary>
-      public const string Commit = @"";
+      /// <summary>Commit: 1ac3ff5</summary>
+      public const string Commit = @"1ac3ff5";
 
-      /// <summary>Sha: </summary>
-      public const string Sha = @"";
+      /// <summary>Sha: 1ac3ff54838485aed8e02caf60b990755cf4eae3</summary>
+      public const string Sha = @"1ac3ff54838485aed8e02caf60b990755cf4eae3";
 
-      /// <summary>Commit date: </summary>
-      public const string CommitDate = @"";
+      /// <summary>Commit date: 2023-07-25T12:10:00+08:00</summary>
+      public const string CommitDate = @"2023-07-25T12:10:00+08:00";
 
-      /// <summary>Commits on top of base version: 0</summary>
-      public const string Commits = @"0";
+      /// <summary>Commits on top of base version: 3</summary>
+      public const string Commits = @"3";
 
       /// <summary>Tag: </summary>
       public const string Tag = @"";
@@ -86,8 +86,8 @@ namespace
         /// <summary>Minor: 0</summary>
         public const string Minor = @"0";
 
-        /// <summary>Patch: 0</summary>
-        public const string Patch = @"0";
+        /// <summary>Patch: 3</summary>
+        public const string Patch = @"3";
 
         /// <summary>Label: </summary>
         public const string Label = @"";
