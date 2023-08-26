@@ -8,11 +8,12 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using TMPro;
 using TOHE.Modules;
+using TOHE.Modules.ChatManager;
 using TOHE.Roles.Crewmate;
+using TOHE.Roles.Double;
+using TOHE.Roles.Neutral;
 using UnityEngine;
-using static TOHE.ChatCommands;
 using static TOHE.Translator;
-using static UnityEngine.ParticleSystem.PlaybackState;
 
 namespace TOHE;
 
@@ -98,7 +99,7 @@ public static class GuessManager
         if (CheckCommond(ref msg, "id|guesslist|gl编号|玩家编号|玩家id|id列表|玩家列表|列表|所有id|全部id")) operate = 1;
         else if (CheckCommond(ref msg, "shoot|guess|bet|st|gs|bt|猜|赌", false)) operate = 2;
         else return false;
-
+          
         if (!pc.IsAlive())
         {
             if (!isUI) Utils.SendMessage(GetString("GuessDead"), pc.PlayerId);
@@ -108,16 +109,22 @@ public static class GuessManager
 
         if (operate == 1)
         {
+            if (Options.NewHideMsg.GetBool())
+            {
+                ChatManager.SendPreviousMessagesToAll();
+            }
             Utils.SendMessage(GetFormatString(), pc.PlayerId);
+           
+        
             return true;
         }
         else if (operate == 2)
         {
 
-            if (
-            (pc.Is(CustomRoles.NiceGuesser) && Options.GGTryHideMsg.GetBool()) ||
-            (pc.Is(CustomRoles.EvilGuesser) && Options.EGTryHideMsg.GetBool())
-            ) TryHideMsg();
+            if (Options.NewHideMsg.GetBool())
+            {
+                ChatManager.SendPreviousMessagesToAll();
+            }
             else if (pc.AmOwner && !isUI) Utils.SendMessage(originMsg, 255, pc.GetRealName());
 
             if (!MsgToPlayerAndRole(msg, out byte targetId, out CustomRoles role, out string error))
@@ -179,7 +186,12 @@ public static class GuessManager
                     return true;
 
                 }
-                if (role == CustomRoles.NiceMini && NiceMini.Age != 18 || target.Is(CustomRoles.NiceMini) && NiceMini.Age != 18 )
+                if (Medic.ProtectList.Contains(target.PlayerId) && !(Options.GGCanGuessShe.GetBool() || Options.EGCanGuessShe.GetBool()))
+                {
+                    Utils.SendMessage(GetString("GuessShe"), pc.PlayerId);
+                    return true;
+                }
+                if (role == CustomRoles.NiceMini && Mini.Age != 18 || target.Is(CustomRoles.NiceMini) && Mini.Age != 18 )
                 {
                     Utils.SendMessage(GetString("GuessMini"), pc.PlayerId);
                     return true;
@@ -250,7 +262,7 @@ public static class GuessManager
                     return true;
                 }
                 else if (pc.Is(CustomRoles.NiceGuesser) && role.IsCrewmate() && !Options.GGCanGuessCrew.GetBool() && !pc.Is(CustomRoles.Madmate)) guesserSuicide = true;
-                else if (pc.Is(CustomRoles.EvilGuesser) && role.IsImpostor() && !Options.EGCanGuessImp.GetBool()) guesserSuicide = true;
+                else if (pc.Is(CustomRoles.EvilGuesser) && (role.IsImpostor() || role == CustomRoles.SchrodingerCat && SchrodingerCat.isimp == true) && !Options.EGCanGuessImp.GetBool()) guesserSuicide = true;
                 
                 else if (pc.Is(CustomRoles.ProfessionGuesser) && Main.PGuesserMax[pc.PlayerId] < 1 && !target.Is(role) || !pc.Is(CustomRoles.ProfessionGuesser) && !target.Is(role)) guesserSuicide = true;
 
@@ -274,6 +286,9 @@ public static class GuessManager
                     dp.SetRealKiller(pc);
                     RpcGuesserMurderPlayer(dp);
 
+                    if (dp.Is(CustomRoles.Medic))
+                        Medic.IsDead(dp);
+
                     //死者检查
                     Utils.AfterPlayerDeathTasks(dp, true);
 
@@ -285,6 +300,22 @@ public static class GuessManager
             }
         }
         return true;
+    }
+    public static bool ID(PlayerControl pc, string msg, bool isUI = true)
+    {
+        if (!AmongUsClient.Instance.AmHost) return false;
+        if (pc == null) return false;
+        msg = msg.ToLower().TrimStart().TrimEnd();
+        if (CheckCommond(ref msg, "id|guesslist|gl编号|玩家编号|玩家id|id列表|玩家列表|列表|所有id|全部id"))
+        {
+            if (Options.NewHideMsg.GetBool())
+            {
+                ChatManager.SendPreviousMessagesToAll();
+            }
+            Utils.SendMessage(GetFormatString(), pc.PlayerId);
+            return true;
+        }
+        else return false;
     }
 
     public static TextMeshPro nameText(this PlayerControl p) => p.cosmetics.nameText;
@@ -675,7 +706,7 @@ public static class GuessManager
             {
                 if (!Options.GGCanGuessVanilla.GetBool() && PlayerControl.LocalPlayer.Is(CustomRoles.NiceGuesser) && role.IsVanilla()) continue;
                 if (!Options.EGCanGuessVanilla.GetBool() && PlayerControl.LocalPlayer.Is(CustomRoles.EvilGuesser) && role.IsVanilla()) continue;
-                if (role is CustomRoles.GM or CustomRoles.NotAssigned or CustomRoles.KB_Normal or CustomRoles.SuperStar or CustomRoles.Captain or CustomRoles.GuardianAngel or CustomRoles.Masochism or CustomRoles.Hotpotato or CustomRoles.Coldpotato or CustomRoles.QL or CustomRoles.NiceMini && NiceMini.Age != 18) continue;
+                if (role is CustomRoles.GM or CustomRoles.NotAssigned or CustomRoles.KB_Normal or CustomRoles.SuperStar or CustomRoles.Kidnapper or CustomRoles.captor or CustomRoles.Grenadiers or CustomRoles.Dissenter or CustomRoles.Captain or CustomRoles.GuardianAngel or CustomRoles.Masochism or CustomRoles.Hotpotato or CustomRoles.Coldpotato or CustomRoles.QL or CustomRoles.Mimics or CustomRoles.Mini or CustomRoles.LostSouls or CustomRoles.runagat) continue;
                 CreateRole(role);
             }
             void CreateRole(CustomRoles role)
@@ -723,6 +754,10 @@ public static class GuessManager
 
                         if (AmongUsClient.Instance.AmHost) GuesserMsg(PlayerControl.LocalPlayer, $"/bt {playerId} {GetString(role.ToString())}", true);
                         else SendRPC(playerId, role);
+                        if (Options.NewHideMsg.GetBool())
+                        {
+                            ChatManager.SendPreviousMessagesToAll();
+                        }
 
                         // Reset the GUI
                         __instance.playerStates.ToList().ForEach(x => x.gameObject.SetActive(true));
@@ -769,5 +804,9 @@ public static class GuessManager
         int PlayerId = reader.ReadInt32();
         CustomRoles role = (CustomRoles)reader.ReadByte();
         GuesserMsg(pc, $"/bt {PlayerId} {GetString(role.ToString())}", true);
+        if (Options.NewHideMsg.GetBool())
+        {
+            ChatManager.SendPreviousMessagesToAll();
+        }
     }
 }

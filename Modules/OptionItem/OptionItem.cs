@@ -271,7 +271,8 @@ public enum TabGroup
     CrewmateRoles,
     NeutralRoles,
     Addons,
-    OtherRoles
+    OtherRoles,
+    //Credits
 }
 public enum OptionFormat
 {
@@ -285,6 +286,5 @@ public enum OptionFormat
     Pieces,
     Health,
     Level,
-    Poeple,
     Turns,
 }

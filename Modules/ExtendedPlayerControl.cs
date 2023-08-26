@@ -9,6 +9,7 @@ using System.Text;
 using TOHE.Modules;
 using TOHE.Roles.AddOns.Impostor;
 using TOHE.Roles.Crewmate;
+using TOHE.Roles.Double;
 using TOHE.Roles.Impostor;
 using TOHE.Roles.Neutral;
 using UnityEngine;
@@ -187,6 +188,7 @@ static class ExtendedPlayerControl
                 .EndRpc();
             sender.EndMessage();
             sender.SendMessage();
+           
         }
     }
     public static void SetKillCooldown(this PlayerControl player, float time = -1f)
@@ -429,12 +431,14 @@ static class ExtendedPlayerControl
             CustomRoles.Counterfeiter => Counterfeiter.CanUseKillButton(pc.PlayerId),
             CustomRoles.FFF => pc.IsAlive(),
             CustomRoles.OpportunistKiller => pc.IsAlive(),
-            CustomRoles.Swapper => pc.IsAlive(),
+            CustomRoles.Shifter => pc.IsAlive(),
             CustomRoles.Crush => pc.IsAlive(),
+            CustomRoles.PlagueDoctor => pc.IsAlive(),
             CustomRoles.Hunter => pc.IsAlive(),
             CustomRoles.EvilMini => pc.IsAlive(),
             CustomRoles.Cupid => pc.IsAlive(),
-            CustomRoles.Medicaler => Medicaler.CanUseKillButton(pc.PlayerId),
+            CustomRoles.Akujo => pc.IsAlive(),
+            CustomRoles.Medic => Medic.CanUseKillButton(pc.PlayerId),
             CustomRoles.Gamer => pc.IsAlive(),
             CustomRoles.DarkHide => DarkHide.CanUseKillButton(pc),
             CustomRoles.Provocateur => pc.IsAlive(),
@@ -450,7 +454,7 @@ static class ExtendedPlayerControl
             CustomRoles.Scout => Scout.CanUseKillButton(pc.PlayerId),
             CustomRoles.Deputy => Deputy.CanUseKillButton(pc.PlayerId),
             CustomRoles.DemonHunterm => DemonHunterm.CanUseKillButton(pc.PlayerId),
-            CustomRoles.QSR => QSR.CanUseKillButton(pc.PlayerId),
+            CustomRoles.Prosecutors => Prosecutors.CanUseKillButton(pc.PlayerId),
             CustomRoles.Jealousy => pc.IsAlive(),
             CustomRoles.SourcePlague => pc.IsAlive(),
             CustomRoles.PlaguesGod => pc.IsAlive(),
@@ -460,13 +464,9 @@ static class ExtendedPlayerControl
             CustomRoles.King => pc.IsAlive(),
             CustomRoles.Hotpotato => pc.IsAlive(),
             CustomRoles.BSR => pc.IsAlive(),
-            CustomRoles.OKSchrodingerCat => pc.IsAlive(),
-            CustomRoles.BloodSchrodingerCat => pc.IsAlive(),
-            CustomRoles.DHSchrodingerCat => pc.IsAlive(),
-            CustomRoles.GamerSchrodingerCat => pc.IsAlive(),
-            CustomRoles.JSchrodingerCat => pc.IsAlive(),
-            CustomRoles.YLSchrodingerCat => pc.IsAlive(),
-            CustomRoles.PGSchrodingerCat => pc.IsAlive(),
+            CustomRoles.Undercover => false,
+            CustomRoles.MimicAss => false,
+            CustomRoles.SchrodingerCat => !SchrodingerCat.noteam,
             CustomRoles.ElectOfficials => ElectOfficials.CanUseKillButton(pc.PlayerId),
             CustomRoles.SpeedUp => pc.IsAlive(),
             CustomRoles.Sidekick => Jackal.SidekickCanKill.GetBool(),
@@ -476,6 +476,13 @@ static class ExtendedPlayerControl
             CustomRoles.Knight => Knight.CanUseKillButton(pc.PlayerId),
             CustomRoles.Merchant => Merchant.CanUseKillButton(pc.PlayerId),
             CustomRoles.Thirsty => pc.IsAlive(),
+            CustomRoles.NiceTracker => NiceTracker.CanUseKillButton(pc.PlayerId),
+            CustomRoles.Yandere => pc.IsAlive(),
+            CustomRoles.Henry => pc.IsAlive(),
+            CustomRoles.Fake => pc.IsAlive(),
+            CustomRoles.RewardOfficer => pc.IsAlive(),
+            CustomRoles.Loners => pc.IsAlive(),
+            CustomRoles.Meditator => pc.IsAlive(),
             _ => pc.Is(CustomRoleTypes.Impostor),
 
         } ;
@@ -491,7 +498,7 @@ static class ExtendedPlayerControl
             CustomRoles.Innocent or
             CustomRoles.SwordsMan or
             CustomRoles.FFF or
-            CustomRoles.Medicaler or
+            CustomRoles.Medic or
             CustomRoles.DarkHide or
             CustomRoles.Provocateur or
             CustomRoles.Totocalcio or
@@ -506,7 +513,8 @@ static class ExtendedPlayerControl
             CustomRoles.Hunter or
             CustomRoles.Crush or
             CustomRoles.Cupid or
-            CustomRoles.QSR or
+            CustomRoles.Akujo or
+            CustomRoles.Prosecutors or
             CustomRoles.Jealousy or
             CustomRoles.SourcePlague or
             CustomRoles.BSR or
@@ -516,7 +524,14 @@ static class ExtendedPlayerControl
             CustomRoles.Exorcist or
             CustomRoles.Lawyer or
             CustomRoles.Knight or
-            CustomRoles.Merchant
+            CustomRoles.Merchant or
+            CustomRoles.NiceTracker or
+            CustomRoles.Yandere or
+            CustomRoles.PlagueDoctor or
+            CustomRoles.Fake or
+            CustomRoles.RewardOfficer or
+            CustomRoles.Loners or
+            CustomRoles.Meditator
             => false,
 
             CustomRoles.Jackal => Jackal.CanVent.GetBool(),
@@ -529,10 +544,11 @@ static class ExtendedPlayerControl
             CustomRoles.Arsonist => pc.IsDouseDone(),
             CustomRoles.Revolutionist => pc.IsDrawDone(),
             CustomRoles.YinLang => YinLang.YLCanVent.GetBool(),
-            CustomRoles.Swapper => false,
+            CustomRoles.Shifter => false,
             CustomRoles.ET => true,
             CustomRoles.Captain => true,
             CustomRoles.King => true,
+            CustomRoles.Henry => true,
 
             //SoloKombat
             CustomRoles.KB_Normal => true,
@@ -608,13 +624,22 @@ static class ExtendedPlayerControl
             case CustomRoles.EvilMini:
                 foreach (var pc in Main.AllPlayerControls)
                 {
-                    if (pc.Is(CustomRoles.EvilMini) && NiceMini.Age != 18)
+                    if (pc.Is(CustomRoles.EvilMini) && Mini.Age == 0)
                     {
-                        Main.AllPlayerKillCooldown[player.PlayerId] = NiceMini.MinorCD.GetFloat();
+                        Main.AllPlayerKillCooldown[player.PlayerId] = Mini.MinorCD.GetFloat();
+                        Main.EvilMiniKillcooldown[player.PlayerId] = Mini.MinorCD.GetFloat();
+
                     }
-                    else if (pc.Is(CustomRoles.EvilMini) && NiceMini.Age == 18)
+                    else if (pc.Is(CustomRoles.EvilMini) && Mini.Age != 18 && Mini.Age != 0)
+                    {
+                        Main.AllPlayerKillCooldown[player.PlayerId] = Main.EvilMiniKillcooldownf;
+                        Main.EvilMiniKillcooldown[player.PlayerId] = Main.EvilMiniKillcooldownf;
+                        player.MarkDirtySettings();
+                    }
+                    else if (pc.Is(CustomRoles.EvilMini) && Mini.Age == 18)
                     {                      
-                        Main.AllPlayerKillCooldown[player.PlayerId] = NiceMini.MajorCD.GetFloat();
+                        Main.AllPlayerKillCooldown[player.PlayerId] = Mini.MajorCD.GetFloat();
+                        player.MarkDirtySettings();
                         player.SyncSettings();
 
                     }
@@ -648,9 +673,10 @@ static class ExtendedPlayerControl
             case CustomRoles.Cleaner:
                 Main.AllPlayerKillCooldown[player.PlayerId] = Options.CleanerKillCooldown.GetFloat();
                 break;
-            case CustomRoles.Medicaler:
-                Medicaler.SetKillCooldown(player.PlayerId);
+           case CustomRoles.Medic:
+                Medic.SetKillCooldown(player.PlayerId);
                 break;
+         
             case CustomRoles.Gamer:
                 Gamer.SetKillCooldown(player.PlayerId);
                 break;
@@ -718,8 +744,8 @@ static class ExtendedPlayerControl
             case CustomRoles.captor:
                 Main.AllPlayerKillCooldown[player.PlayerId] = ModeArrestManager.Arrestkillcd.GetFloat();
                 break;
-            case CustomRoles.Swapper:
-                Main.AllPlayerKillCooldown[player.PlayerId] = Swapper.KillCooldown.GetFloat();
+            case CustomRoles.Shifter:
+                Main.AllPlayerKillCooldown[player.PlayerId] = Shifter.KillCooldown.GetFloat();
                 break;
             case CustomRoles.Cultivator:
                 Main.AllPlayerKillCooldown[player.PlayerId] = Options.CultivatorKillCooldown.GetFloat();
@@ -742,8 +768,8 @@ static class ExtendedPlayerControl
             case CustomRoles.Deputy:
                 Deputy.SetKillCooldown(player.PlayerId);
                 break;
-            case CustomRoles.QSR:
-                QSR.SetKillCooldown(player.PlayerId);
+            case CustomRoles.Prosecutors:
+                Prosecutors.SetKillCooldown(player.PlayerId);
                 break;
             case CustomRoles.DemonHunterm:
                 DemonHunterm.SetKillCooldown(player.PlayerId);
@@ -764,7 +790,10 @@ static class ExtendedPlayerControl
                 Main.AllPlayerKillCooldown[player.PlayerId] = 1f;
                 break;
             case CustomRoles.Cupid:
-                Main.AllPlayerKillCooldown[player.PlayerId] = Options.CupidSkillCooldown.GetFloat();
+                Main.AllPlayerKillCooldown[player.PlayerId] = 1f;
+                break;
+            case CustomRoles.Akujo:
+                Main.AllPlayerKillCooldown[player.PlayerId] = 1f;
                 break;
             case CustomRoles.Slaveowner:
                 Main.AllPlayerKillCooldown[player.PlayerId] = Options.SlaveownerKillCooldown.GetFloat();
@@ -825,6 +854,36 @@ static class ExtendedPlayerControl
                 break;
             case CustomRoles.Merchant:
                 Merchant.SetKillCooldown(player.PlayerId);
+                break;
+            case CustomRoles.NiceTracker:
+                NiceTracker.SetKillCooldown(player.PlayerId);
+                break;
+            case CustomRoles.Yandere:
+                Yandere.SetKillCooldown(player.PlayerId);
+                break;
+            case CustomRoles.PlagueDoctor:
+                PlagueDoctor.SetKillCooldown(player.PlayerId);
+                break;
+            case CustomRoles.Henry:
+                Henry.SetKillCooldown(player.PlayerId);
+                break;
+           // case CustomRoles.Kidnapper:
+             //   Kidnapper.SetKillCooldown(player.PlayerId);
+            //    break;
+            case CustomRoles.MimicKiller:
+                Mimics.SetKillCooldown(player.PlayerId);
+                break;
+            case CustomRoles.Fake:
+                Main.AllPlayerKillCooldown[player.PlayerId] = Options.KillColldown.GetInt();
+                break;
+            case    CustomRoles.RewardOfficer:
+                    Main.AllPlayerKillCooldown[player.PlayerId] = 1f;
+                break;
+            case CustomRoles.Loners:
+                Loners.SetKillCooldown(player.PlayerId);
+                break;
+            case CustomRoles.Meditator:
+                Meditator.SetKillCooldown(player.PlayerId);
                 break;
         }
         if (player.PlayerId == LastImpostor.currentId)

@@ -131,6 +131,7 @@ public static class Camouflage
             .Write(newOutfit.PetId)
             .EndRpc();
 
-        sender.SendMessage();
+        sender.
+            SendMessage();
     }
 }

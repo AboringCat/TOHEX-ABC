@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TOHE.Modules;
+using TOHE.Modules.ChatManager;
 using TOHE.Roles.AddOns.Crewmate;
 using TOHE.Roles.AddOns.Impostor;
 using TOHE.Roles.Crewmate;
+using TOHE.Roles.Double;
 using TOHE.Roles.Impostor;
 using TOHE.Roles.Neutral;
 using static TOHE.ChatCommands;
@@ -34,15 +36,23 @@ enum CustomRPC
     SetLoversPlayers,
     SetCrushLoversPlayers,
     SetCupidLoversPlayers,
+    SetAkujoLoversPlayers,
     SetExecutionerTarget,
     RemoveExecutionerTarget,
     SendFireWorksState,
     SetCurrentDousingTarget,
+    SetInfectDousingTarget,
+    SetChameleonTimer,
+    SetMedicalerProtectList,
+    SetMedicalerProtectLimit,
+    SetMiniLimit,
     SetEvilTrackerTarget,
     SetRealKiller,
     SetLawyerTarget,
     RemoveLawyerTarget,
     SetNiceTrackerTarget,
+    SetYandereTarget,
+    RemoveYandereTarget,
 
     // TOHE
     AntiBlackout,
@@ -57,7 +67,9 @@ enum CustomRPC
     //Roles
     SetDrawPlayer,
     SetCurrentDrawTarget,
+        SetCurrentInfectTarget,
     SetGamerHealth,
+    SetInfect,
     SetPelicanEtenNum,
     SwordsManKill,
     SetCounterfeiterSellLimit,
@@ -65,10 +77,11 @@ enum CustomRPC
     SetMiniSellLimit,
     SetScoutSellLimit,
     SetDeputySellLimit,
-    SetQSRSellLimit,
+    SetProsecutorsSellLimit,
     SetDemonHuntermSellLimit,
     SetVandalismSellLimit,
-    SetMedicalerProtectLimit,
+    SetMedicMedicShieldsCount,
+    SetMedicMedicList,
     SetGangsterRecruitLimit,
     SetJackalAttendantLimit,
     SetGhostPlayer,
@@ -76,16 +89,21 @@ enum CustomRPC
     SetGreedierOE,
     SetCursedWolfSpellCount,
     SetCollectorVotes,
+    SetNiceSwapperVotes,
+    SetEvilSwapperVotes,
     SetQuickShooterShotLimit,
     SetEraseLimit,
     GuessKill,
     SetMarkedPlayer,
     SetConcealerTimer,
-    SetMedicalerProtectList,
+    SetNiceTrackerArrow,
+    SetYandereArrow,
+    SetHenrySellLimit,
     SetHackerHackLimit,
     SyncPsychicRedList,
     SetMorticianArrow,
     Judge,
+    Copycat,
     Guess,
     MafiaRevenge,
     SetSwooperTimer,
@@ -144,6 +162,7 @@ internal class RPCHandlerPatch
                 break;
             case RpcCalls.SendChat:
                 var text = subReader.ReadString();
+                
                 Logger.Info($"{__instance.GetNameWithRole()}:{text}", "ReceiveChat");
                 ChatCommands.OnReceiveChat(__instance, text, out var canceled);
                 if (canceled) return false;
@@ -322,6 +341,12 @@ internal class RPCHandlerPatch
                 for (int i = 0; i < count2; i++)
                     Main.CupidLoversPlayers.Add(Utils.GetPlayerById(reader.ReadByte()));
                 break;
+            case CustomRPC.SetAkujoLoversPlayers:
+                Main.AkujoLoversPlayers.Clear();
+                int count3 = reader.ReadInt32();
+                for (int i = 0; i < count3; i++)
+                    Main.AkujoLoversPlayers.Add(Utils.GetPlayerById(reader.ReadByte()));
+                break;
             case CustomRPC.SetExecutionerTarget:
                 Executioner.ReceiveRPC(reader, SetTarget: true);
                 break;
@@ -366,8 +391,8 @@ internal class RPCHandlerPatch
             case CustomRPC.SetCounterfeiterSellLimit:
                 Counterfeiter.ReceiveRPC(reader);
                 break;
-            case CustomRPC.SetMedicalerProtectLimit:
-                Medicaler.ReceiveRPC(reader);
+            case CustomRPC.SetMedicMedicShieldsCount:
+               Medic.ReceiveRPC(reader);
                 break;
             case CustomRPC.SetProphetSellLimit:
                 Prophet.ReceiveRPC(reader);
@@ -378,8 +403,8 @@ internal class RPCHandlerPatch
             case CustomRPC.SetDeputySellLimit:
                 Deputy.ReceiveRPC(reader);
                 break;
-            case CustomRPC.SetQSRSellLimit:
-                QSR.ReceiveRPC(reader);
+            case CustomRPC.SetProsecutorsSellLimit:
+                Prosecutors.ReceiveRPC(reader);
                 break;
             case CustomRPC.SetDemonHuntermSellLimit:
                 DemonHunterm.ReceiveRPC(reader);
@@ -398,6 +423,9 @@ internal class RPCHandlerPatch
                 break;
             case CustomRPC.SetJackalAttendantLimit:
                 Jackal.ReceiveRPC(reader);
+                break;
+            case CustomRPC.SetInfect:
+                PlagueDoctor.ReceiveRPC(reader);
                 break;
             case CustomRPC.PlayCustomSound:
                 CustomSoundsManager.ReceiveRPC(reader);
@@ -422,6 +450,12 @@ internal class RPCHandlerPatch
             case CustomRPC.SetCollectorVotes:
                 Collector.ReceiveRPC(reader);
                 break;
+            case CustomRPC.SetNiceSwapperVotes:
+                NiceSwapper.ReceiveRPC(reader, __instance);
+                break;
+            case CustomRPC.SetEvilSwapperVotes:
+                EvilSwapper.ReceiveRPC(reader, __instance);
+                break;
             case CustomRPC.SetQuickShooterShotLimit:
                 QuickShooter.ReceiveRPC(reader);
                 break;
@@ -439,7 +473,13 @@ internal class RPCHandlerPatch
                 Concealer.ReceiveRPC(reader);
                 break;
             case CustomRPC.SetMedicalerProtectList:
-                Medicaler.ReceiveRPCForProtectList(reader);
+                Medic.ReceiveRPC(reader);
+                break;
+            case CustomRPC.SetMedicalerProtectLimit:
+                Medic.ReceiveRPCForProtectList(reader);
+                break;              
+            case CustomRPC.SetHenrySellLimit:
+                Henry.ReceiveRPC(reader);
                 break;
             case CustomRPC.SetHackerHackLimit:
                 Hacker.ReceiveRPC(reader);
@@ -484,6 +524,15 @@ internal class RPCHandlerPatch
             case CustomRPC.Strikers:
                // Strikers.ReceiveRPC(reader, __instance);
                 break;
+            case CustomRPC.SetNiceTrackerArrow:
+                NiceTracker.ReceiveRPC(reader);
+                break;
+            case CustomRPC.SetYandereTarget:
+                Yandere.ReceiveRPC(reader);
+                break;
+            case CustomRPC.SetYandereArrow:
+                Yandere.ReceiveRPC(reader);
+                break;
             case CustomRPC.Guess:
                 GuessManager.ReceiveRPC(reader, __instance);
                 break;
@@ -520,6 +569,9 @@ internal class RPCHandlerPatch
                 break;
             case CustomRPC.SetCaptainSolicitLimit:
                 Captain.ReceiveRPC(reader);
+                break;
+            case CustomRPC.SetChameleonTimer:
+                Chameleon.ReceiveRPC(reader);
                 break;
         }
     }
@@ -726,10 +778,10 @@ internal static class RPC
                 Sheriff.Add(targetId);
                 break;
             case CustomRoles.NiceMini:
-                NiceMini.Add(targetId);
+                Mini.Add(targetId);
                 break;
             case CustomRoles.EvilMini:
-                NiceMini.Add(targetId);
+                Mini.Add(targetId);
                 break;
             case CustomRoles.QuickShooter:
                 QuickShooter.Add(targetId);
@@ -764,8 +816,11 @@ internal static class RPC
             case CustomRoles.Gangster:
                 Gangster.Add(targetId);
                 break;
-            case CustomRoles.Medicaler:
-                Medicaler.Add(targetId);
+            case CustomRoles.Medic:
+                Medic.Add(targetId);
+                break;
+            case CustomRoles.SchrodingerCat:
+                SchrodingerCat.Add(targetId);
                 break;
             case CustomRoles.Divinator:
                 Divinator.Add(targetId);
@@ -851,8 +906,8 @@ internal static class RPC
             case CustomRoles.Deputy:
                 Deputy.Add(targetId);
                 break;
-            case CustomRoles.QSR:
-                QSR.Add(targetId);
+            case CustomRoles.Prosecutors:
+                Prosecutors.Add(targetId);
                 break;
             case CustomRoles.DemonHunterm:
                 DemonHunterm.Add(targetId);
@@ -896,6 +951,45 @@ internal static class RPC
             case CustomRoles.Merchant:
                 Merchant.Add(targetId);
                 break;
+            case CustomRoles.NiceTracker:
+                NiceTracker.Add(targetId);
+                break;
+            case CustomRoles.Yandere:
+                Yandere.Add(targetId);
+                break;
+            case CustomRoles.PlagueDoctor:
+                PlagueDoctor.Add(targetId);
+                break;
+            case CustomRoles.Buried:
+                Buried.Add(targetId);
+                break;
+            case CustomRoles.Henry:
+                Henry.Add(targetId);
+                break;
+                // case CustomRoles.Kidnapper:
+             //   Kidnapper.Add(targetId);
+            //    break;
+            case CustomRoles.MimicKiller:
+                Mimics.Add(targetId);
+                break;
+            case CustomRoles.MimicAss:
+                Mimics.Add(targetId);
+                break;
+            case CustomRoles.NiceSwapper: 
+                NiceSwapper.Add(targetId);
+                break;
+            case CustomRoles.EvilSwapper:
+                EvilSwapper.Add(targetId);
+                break;
+            case CustomRoles.Blackmailer:
+                Blackmailer.Add(targetId);
+                break;
+            case CustomRoles.RewardOfficer:
+                RewardOfficer.Add(targetId);
+                break;
+            case CustomRoles.Copycat:
+                Copycat.Add(targetId);
+                break;
         }
         HudManager.Instance.SetHudActive(true);
         if (PlayerControl.LocalPlayer.PlayerId == targetId) RemoveDisableDevicesPatch.UpdateDisableDevices();
@@ -935,6 +1029,17 @@ internal static class RPC
         MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SetCupidLoversPlayers, SendOption.Reliable, -1);
         writer.Write(Main.CupidLoversPlayers.Count);
         foreach (var lp in Main.CupidLoversPlayers)
+        {
+            writer.Write(lp.PlayerId);
+        }
+        AmongUsClient.Instance.FinishRpcImmediately(writer);
+    }
+    public static void SyncAkujoLoversPlayers()
+    {
+        if (!AmongUsClient.Instance.AmHost) return;
+        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SetAkujoLoversPlayers, SendOption.Reliable, -1);
+        writer.Write(Main.AkujoLoversPlayers.Count);
+        foreach (var lp in Main.AkujoLoversPlayers)
         {
             writer.Write(lp.PlayerId);
         }

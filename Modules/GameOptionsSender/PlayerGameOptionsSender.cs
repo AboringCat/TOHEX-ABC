@@ -106,6 +106,11 @@ public class PlayerGameOptionsSender : GameOptionsSender
                 AURoleOptions.ShapeshifterLeaveSkin = false;
                 AURoleOptions.ShapeshifterDuration = Options.ShapeMasterShapeshiftDuration.GetFloat();
                 break;
+            case CustomRoles.MimicAss:
+                AURoleOptions.ShapeshifterCooldown = 0f;
+                AURoleOptions.ShapeshifterLeaveSkin = false;
+                AURoleOptions.ShapeshifterDuration = 999f;
+                break;
             case CustomRoles.Warlock:
                 AURoleOptions.ShapeshifterCooldown = Main.isCursed ? 1f : Options.DefaultKillCooldown;
                 break;
@@ -120,10 +125,10 @@ public class PlayerGameOptionsSender : GameOptionsSender
             case CustomRoles.Arsonist:
             case CustomRoles.Minimalism:
             case CustomRoles.Innocent:
-            case CustomRoles.Swapper:
+            case CustomRoles.Shifter:
             case CustomRoles.Pelican:
             case CustomRoles.Revolutionist:
-            case CustomRoles.Medicaler:
+            case CustomRoles.Medic:
             case CustomRoles.Prophet:
             case CustomRoles.Scout:
             case CustomRoles.Deputy:
@@ -132,11 +137,13 @@ public class PlayerGameOptionsSender : GameOptionsSender
             case CustomRoles.Captain:
             case CustomRoles.Provocateur:
             case CustomRoles.BSR:
-            case CustomRoles.QSR:
+            case CustomRoles.Prosecutors:
             case CustomRoles.Lawyer:
             case CustomRoles.NiceTracker:
             case CustomRoles.Knight:
             case CustomRoles.Merchant:
+            case CustomRoles.Yandere:
+            case CustomRoles.PlagueDoctor:
                 opt.SetVision(false);
                 break;
             case CustomRoles.Zombie:
@@ -284,6 +291,42 @@ public class PlayerGameOptionsSender : GameOptionsSender
                 AURoleOptions.ShapeshifterCooldown = Options.AssassinateCooldown.GetFloat();
                 AURoleOptions.ShapeshifterDuration = 0.3f;
                 break;
+            case CustomRoles.Buried:
+                Buried.ApplyGameOptions();
+                break;
+            case CustomRoles.Henry:
+                Henry.ApplyGameOptions();
+                break;
+            case CustomRoles.Chameleon:
+                AURoleOptions.EngineerCooldown = 0f;
+                AURoleOptions.EngineerInVentMaxTime = 0f;
+                break;
+            case CustomRoles.Disperser:
+                Disperser.ApplyGameOptions();
+                break;
+            case CustomRoles.Sleeve:
+                AURoleOptions.ShapeshifterCooldown = Options.SleeveCooldown.GetFloat();
+                AURoleOptions.ShapeshifterDuration = Options.SleeveshifterMax.GetFloat();
+                break;
+            case CustomRoles.Medusa:
+                AURoleOptions.ShapeshifterCooldown = Options.MedusaCooldown.GetFloat();
+                AURoleOptions.ShapeshifterDuration = 1f;
+                break;
+            case CustomRoles.Cluster:
+                AURoleOptions.ShapeshifterCooldown = Options.ClusterCooldown.GetFloat();
+                AURoleOptions.ShapeshifterDuration = 1f;
+                break;
+            case CustomRoles.Forger:
+                AURoleOptions.ShapeshifterCooldown = Options.ForgerCooldown.GetFloat();
+                AURoleOptions.ShapeshifterDuration = 1f;
+                break;
+            case CustomRoles.Blackmailer:
+                Blackmailer.ApplyGameOptions();
+                break;
+            case CustomRoles.Spiritualists:
+                AURoleOptions.EngineerCooldown = Options.SpiritualistsVentCooldown.GetFloat();
+                AURoleOptions.EngineerInVentMaxTime = Options.SpiritualistsVentMaxCooldown.GetFloat();
+                break;
         }
 
         // ÎªÃÔ»ÃÕßµÄÐ×ÊÖ
@@ -319,7 +362,7 @@ public class PlayerGameOptionsSender : GameOptionsSender
         }
             // Í¶ÖÀÉµ¹Ïµ°À²£¡£¡£¡£¡£¡
             if (
-            (Main.GrenadierBlinding.Count >= 1 && (player.GetCustomRole().IsImpostor() || (player.GetCustomRole().IsNeutral() && Options.GrenadierCanAffectNeutral.GetBool()))) || (Main.MadGrenadierBlinding.Count >= 1 && !player.GetCustomRole().IsImpostorTeam() && !player.Is(CustomRoles.Madmate)))
+            (Main.GrenadierBlinding.Count >= 1 && (player.GetCustomRole().IsImpostor() || player.Is(CustomRoles.SchrodingerCat) && SchrodingerCat.isimp ||(player.GetCustomRole().IsNeutral() && Options.GrenadierCanAffectNeutral.GetBool()))) || (Main.MadGrenadierBlinding.Count >= 1 && !player.GetCustomRole().IsImpostorTeam() && !player.Is(CustomRoles.Madmate)))
         {
             {
                 opt.SetVision(false);

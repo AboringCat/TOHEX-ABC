@@ -11,6 +11,7 @@ using InnerNet;
 using static TOHE.Translator;
 using TOHE.Roles.Crewmate;
 using static UnityEngine.GraphicsBuffer;
+using TOHE.Roles.Double;
 
 namespace TOHE;
 
@@ -368,7 +369,7 @@ public class TaskState
                 CustomWinnerHolder.ResetAndSetWinner(CustomWinner.Workaholic); //爆破で勝利した人も勝利させる
                 CustomWinnerHolder.WinnerIds.Add(player.PlayerId);
             }
-
+            
             //船鬼要抽奖啦
             if (player.Is(CustomRoles.Crewpostor))
             {
@@ -407,10 +408,25 @@ public class TaskState
                 {
                     CustomWinnerHolder.ResetAndSetWinner(CustomWinner.CupidLovers);
                 }
+                else if (player.Is(CustomRoles.Honmei))
+                {
+                    CustomWinnerHolder.ResetAndSetWinner(CustomWinner.Akujo);
+                }
                 else
                 {
                     CustomWinnerHolder.ResetAndSetWinner(CustomWinner.Impostor);
                 }
+            }
+            //绝望先生
+            if (player.Is(CustomRoles.MrDesperate))
+            {
+                MrDesperate.KillTime = 0;
+                player.RpcGuardAndKill(player);
+            }
+            if (player.Is(CustomRoles.MrDesperate) && (CompletedTasksCount + 1) >= AllTasksCount)
+            {
+                CustomWinnerHolder.ResetAndSetWinner(CustomWinner.MrDesperate);
+                CustomWinnerHolder.WinnerIds.Add(player.PlayerId);
             }
             //幽魂寄了
             if (player.Is(CustomRoles.DeathGhost) && player.IsAlive())
@@ -487,7 +503,7 @@ public class TaskState
                 if (player.Is(CustomRoles.Charmed))
                 {
                     CustomWinnerHolder.ResetAndSetWinner(CustomWinner.Succubus);
-                    Logger.Info($"任务工-魅魔做完任务", "HatarakiMan");
+                    Logger.Info($"任务工-魅惑者做完任务", "HatarakiMan");
                 }
                 else if (player.Is(CustomRoles.Madmate))
                 {
@@ -508,6 +524,10 @@ public class TaskState
                 {
                     CustomWinnerHolder.ResetAndSetWinner(CustomWinner.CupidLovers);
                     Logger.Info($"任务工-丘比特恋人做完任务", "HatarakiMan");
+                }
+                else if (player.Is(CustomRoles.Honmei))
+                {
+                    CustomWinnerHolder.ResetAndSetWinner(CustomWinner.Akujo);
                 }
                 else
                 {

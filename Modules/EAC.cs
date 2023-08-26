@@ -56,7 +56,7 @@ internal class EAC
                         Report(pc, "非法设置游戏名称");
                         Logger.Fatal($"非法修改玩家【{pc.GetClientId()}:{pc.GetRealName()}】的游戏名称，已驳回", "EAC");
 
-                        return true;
+                        return false;
                     }
                     break;
                 case RpcCalls.SetRole:
@@ -65,8 +65,8 @@ internal class EAC
                     {
                         WarnHost();
                         Report(pc, "非法设置状态为幽灵");
-                        Logger.Fatal($"非法设置玩家【{pc.GetClientId()}:{pc.GetRealName()}】的状态为幽灵，已准许", "EAC");
-                        return false;
+                        Logger.Fatal($"非法设置玩家【{pc.GetClientId()}:{pc.GetRealName()}】的状态为幽灵，已驳回", "EAC");
+                        return true;
                     }
                     break;
                 case RpcCalls.SendChat:
@@ -115,7 +115,7 @@ internal class EAC
                     {
                         WarnHost();
                         Report(pc, "非法设置颜色");
-                        Logger.Fatal($"玩家【{pc.GetClientId()}:{pc.GetRealName()}】非法设置颜色，已准许", "EAC");
+                        Logger.Fatal($"玩家【{pc.GetClientId()}:{pc.GetRealName()}】非法设置颜色，已驳回", "EAC");
                         return false;
                     }
                     break;
@@ -124,8 +124,8 @@ internal class EAC
                     {
                         WarnHost();
                         Report(pc, "非法击杀");
-                        Logger.Fatal($"玩家【{pc.GetClientId()}:{pc.GetRealName()}】非法击杀，已驳回", "EAC");
-                        return true;
+                        Logger.Fatal($"玩家【{pc.GetClientId()}:{pc.GetRealName()}】非法击杀，已允许", "EAC");
+                        return false;
                     }
                     break;
             }
@@ -144,7 +144,7 @@ internal class EAC
                     {
                         WarnHost();
                         Report(pc, "非法设置颜色");
-                        Logger.Fatal($"玩家【{pc.GetClientId()}:{pc.GetRealName()}】非法设置颜色，已准许", "EAC");
+                        Logger.Fatal($"玩家【{pc.GetClientId()}:{pc.GetRealName()}】非法设置颜色，允许", "EAC");
                         return false;
                     }
                     break;
@@ -164,8 +164,8 @@ internal class EAC
                     {
                         WarnHost();
                         Report(pc, "非法设置游戏名称");
-                        Logger.Fatal($"非法修改玩家【{pc.GetClientId()}:{pc.GetRealName()}】的游戏名称，已驳回", "EAC");
-                        return true;
+                        Logger.Fatal($"非法修改玩家【{pc.GetClientId()}:{pc.GetRealName()}】的游戏名称，允许", "EAC");
+                        return false;
                     }
                     break;
                 case 47:
@@ -182,8 +182,8 @@ internal class EAC
                     {
                         WarnHost();
                         Report(pc, "非法设置宠物");
-                        Logger.Fatal($"玩家【{pc.GetClientId()}:{pc.GetRealName()}】非法设置宠物，已驳回", "EAC");
-                        return true;
+                        Logger.Fatal($"玩家【{pc.GetClientId()}:{pc.GetRealName()}】非法设置宠物，已允许", "EAC");
+                        return false;
                     }
                     break;
                 case 40:
@@ -191,8 +191,8 @@ internal class EAC
                     {
                         WarnHost();
                         Report(pc, "非法设置皮肤");
-                        Logger.Fatal($"玩家【{pc.GetClientId()}:{pc.GetRealName()}】非法设置皮肤，已驳回", "EAC");
-                        return true;
+                        Logger.Fatal($"玩家【{pc.GetClientId()}:{pc.GetRealName()}】非法设置皮肤，已允许", "EAC");
+                        return false;
                     }
                     break;
                 case 42:
@@ -209,8 +209,8 @@ internal class EAC
                     {
                         WarnHost();
                         Report(pc, "非法设置帽子");
-                        Logger.Fatal($"玩家【{pc.GetClientId()}:{pc.GetRealName()}】非法设置帽子，已驳回", "EAC");
-                        return true;
+                        Logger.Fatal($"玩家【{pc.GetClientId()}:{pc.GetRealName()}】非法设置帽子，已允许", "EAC");
+                        return false;
                     }
                     break;
                 case 43:
@@ -238,11 +238,7 @@ internal class EAC
         string msg = $"{pc.GetClientId()}|{pc.FriendCode}|{pc.Data.PlayerName}|{reason}";
         Cloud.SendData(msg);
         Logger.Fatal($"EAC报告：{pc.GetRealName()}: {reason}", "EAC Cloud");
-        if (Options.EACPLUS.GetBool())
-        {
-            AmongUsClient.Instance.KickPlayer(pc.PlayerId, true);
-            Logger.Fatal($"EAC报告：{pc.GetRealName()}: {reason}，且房主开启EAC高级模式，已被踢出", "EAC Cloud");
-        }
+        
     }
     public static bool ReceiveInvalidRpc(PlayerControl pc, byte callId)
     {

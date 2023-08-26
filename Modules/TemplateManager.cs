@@ -20,7 +20,7 @@ public static class TemplateManager
         ["RoomCode"] = () => InnerNet.GameCode.IntToGameName(AmongUsClient.Instance.GameId),
         ["PlayerName"] = () => DataManager.Player.Customization.Name,
         ["AmongUsVersion"] = () => UnityEngine.Application.version,
-        ["ModVersion"] = () => Main.PluginVersion,
+        ["ModVersion"] = () => Main.PluginDisplayVersion,
         ["Map"] = () => Constants.MapNames[Main.NormalOptions.MapId],
         ["NumEmergencyMeetings"] = () => Main.NormalOptions.NumEmergencyMeetings.ToString(),
         ["EmergencyCooldown"] = () => Main.NormalOptions.EmergencyCooldown.ToString(),

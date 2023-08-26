@@ -17,8 +17,8 @@ namespace TOHE;
 [HarmonyPatch]
 public class ModUpdater
 {
-    private static readonly string URL_2018k = "https://api.github.com/repos/TOHEX-ABC/releases";
-    private static readonly string URL_Github = "https://api.github.com/repos/TOHEX-ABC/releases";
+    private static readonly string URL_2018k = "http://api.2018k.cn";
+    private static readonly string URL_Github = "https://api.github.com/repos/TOHEXGF/TownOfHostEditedXI";
     public static bool hasUpdate = false;
     public static bool forceUpdate = true;
     public static bool isBroken = false;
@@ -71,7 +71,8 @@ public class ModUpdater
         //)));
     }
 
-    public static string UrlSetId(string url) => url + "?id=8F249256BAFA41FB97E6FDE8F899ED57";
+    public static string UrlSetId(string url) => url + "?id=C79D600F1123469B8BECDC631CB3AF09";
+    //public static string UrlSetId(string url) => url + "?id=8F249256BAFA41FB97E6FDE8F899ED57";
     public static string UrlSetCheck(string url) => url + "/checkVersion";
     public static string UrlSetInfo(string url) => url + "/getExample";
     public static string UrlSetToday(string url) => url + "/today";

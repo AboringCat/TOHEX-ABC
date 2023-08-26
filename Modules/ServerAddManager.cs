@@ -21,13 +21,13 @@ public static class ServerAddManager
 
         if (CultureInfo.CurrentCulture.Name.StartsWith("zh"))
         {
-            //regionInfos.Add(CreateHttp("au-sh.pafyx.top", "梦服上海 (新)", 22000, false));
-            regionInfos.Add(CreateHttp("au-sh.pafyx.top", "梦初私服", 22000, false));
-            //regionInfos.Add(CreateHttp("120.78.171.61", "霸总广州", 22000, false));
+            regionInfos.Add(CreateHttp("au-sh.pafyx.top", "梦服上海 (新)", 22000, true));
+            regionInfos.Add(CreateHttp("au-sh.pafyx.top", "梦初私服", 22000, true));
+            regionInfos.Add(CreateHttp("120.78.171.61", "霸总广州", 22000, true));
         }
-        //regionInfos.Add(CreateHttp("au-as.duikbo.at", "Modded Asia (MAS)", 443, true));
-        //regionInfos.Add(CreateHttp("aumods.one", "Modded NA (MNA)", 443, true));
-        //regionInfos.Add(CreateHttp("au-eu.duikbo.at", "Modded EU (MEU)", 443, true));
+        regionInfos.Add(CreateHttp("au-as.duikbo.at", "Modded Asia (MAS)", 443, true));
+        regionInfos.Add(CreateHttp("aumods.one", "Modded NA (MNA)", 443, true));
+        regionInfos.Add(CreateHttp("au-eu.duikbo.at", "Modded EU (MEU)", 443, true));
         regionInfos.Add(CreateHttp("au-as.duikbo.at", "模组服务器亚洲MAS", 443, true));
         regionInfos.Add(CreateHttp("aumods.one", "模组服务器北美洲MNA", 443, true));
         regionInfos.Add(CreateHttp("au-eu.duikbo.at", "模组服务器欧洲MEU", 443, true));
