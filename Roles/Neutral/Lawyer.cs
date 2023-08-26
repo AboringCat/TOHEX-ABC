@@ -24,18 +24,13 @@ public static class Lawyer
     public static void SetupCustomOption()
     {
         SetupRoleOptions(Id, TabGroup.NeutralRoles, CustomRoles.Lawyer);
-        //    LawyerVision = FloatOptionItem.Create(Id + 14, "LawyerVision", new(0f, 5f, 0.05f), 1.25f, TabGroup.NeutralRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Lawyer])
-        //        .SetValueFormat(OptionFormat.Multiplier);
-        //CanTargetImpostor = BooleanOptionItem.Create(Id + 10, "LawyerCanTargetImpostor", true, TabGroup.NeutralRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Lawyer]);
-        //CanTargetNeutralKiller = BooleanOptionItem.Create(Id + 11, "LawyerCanTargetNeutralKiller", false, TabGroup.NeutralRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Lawyer]);
         CanTargetCrewmate = BooleanOptionItem.Create(Id + 12, "LawyerCanTargetCrewmate", false, TabGroup.NeutralRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Lawyer]);
         CanTargetJester = BooleanOptionItem.Create(Id + 13, "LawyerCanTargetJester", false, TabGroup.NeutralRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Lawyer]);
         KnowTargetRole = BooleanOptionItem.Create(Id + 14, "KnowTargetRole", false, TabGroup.NeutralRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Lawyer]);
         TargetKnowsLawyer = BooleanOptionItem.Create(Id + 15, "TargetKnowsLawyer", false, TabGroup.NeutralRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Lawyer]);
-        //ChangeRolesAfterTargetKilled = StringOptionItem.Create(Id + 16, "LawyerChangeRolesAfterTargetKilled", ChangeRoles, 1, TabGroup.NeutralRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Lawyer]);
-        QSR.SkillCooldown = FloatOptionItem.Create(Id + 15, "QSRSkillCooldown", new(2.5f, 900f, 2.5f), 20f, TabGroup.NeutralRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Lawyer])
+        Prosecutors.SkillCooldown = FloatOptionItem.Create(Id + 15, "ProsecutorsSkillCooldown", new(2.5f, 900f, 2.5f), 20f, TabGroup.NeutralRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Lawyer])
             .SetValueFormat(OptionFormat.Seconds);
-        QSR.SkillLimitOpt = IntegerOptionItem.Create(Id + 16, "QSRSkillLimit", new(1, 990, 1), 3, TabGroup.NeutralRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Lawyer])
+        Prosecutors.SkillLimitOpt = IntegerOptionItem.Create(Id + 16, "ProsecutorsSkillLimit", new(1, 990, 1), 3, TabGroup.NeutralRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Lawyer])
             .SetValueFormat(OptionFormat.Times);
     }
     public static void Init()
@@ -58,7 +53,7 @@ public static class Lawyer
                 else if (!CanTargetCrewmate.GetBool() && target.Is(CustomRoleTypes.Crewmate)) continue;
                 else if (!CanTargetJester.GetBool() && target.Is(CustomRoles.Jester)) continue;
                 if (target.Is(CustomRoleTypes.Neutral) && !target.IsNKS() && !target.Is(CustomRoles.Jester)) continue;
-                if (target.GetCustomRole() is CustomRoles.GM or CustomRoles.SuperStar or CustomRoles.Captain) continue;
+                if (target.GetCustomRole() is CustomRoles.GM or CustomRoles.SuperStar or CustomRoles.Captain or CustomRoles.NiceMini or CustomRoles.EvilMini) continue;
                 if (Utils.GetPlayerById(playerId).Is(CustomRoles.Lovers) && target.Is(CustomRoles.Lovers)) continue;
 
                 targetList.Add(target);
@@ -83,7 +78,7 @@ public static class Lawyer
                 AmongUsClient.Instance.FinishRpcImmediately(writer);
                 break;
             case "":
-                if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost) return;
+                  if (!AmongUsClient.Instance.AmHost) return;
                 writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.RemoveLawyerTarget, SendOption.Reliable);
                 writer.Write(lawyerId);
                 AmongUsClient.Instance.FinishRpcImmediately(writer);
@@ -110,9 +105,9 @@ public static class Lawyer
             if (x.Value == target.PlayerId)
                 Lawyer = x.Key;
         });
-        Utils.GetPlayerById(Lawyer).RpcSetCustomRole(CustomRoles.QSR);
-        QSR.Add(Lawyer);
-        QSR.Add(Lawyer);
+        Utils.GetPlayerById(Lawyer).RpcSetCustomRole(CustomRoles.Prosecutors);
+        Prosecutors.Add(Lawyer);
+        Prosecutors.Add(Lawyer);
         Utils.GetPlayerById(Lawyer).ResetKillCooldown();
         Utils.GetPlayerById(Lawyer).SetKillCooldown();
         Utils.GetPlayerById(Lawyer).RpcGuardAndKill(Utils.GetPlayerById(Lawyer));
@@ -128,16 +123,16 @@ public static class Lawyer
 
     public static void ChangeRole(PlayerControl lawyer)
     {
-        lawyer.RpcSetCustomRole(CustomRoles.QSR);
-        QSR.Add(lawyer.PlayerId);
-        QSR.Add(lawyer.PlayerId);
+        lawyer.RpcSetCustomRole(CustomRoles.Prosecutors);
+        Prosecutors.Add(lawyer.PlayerId);
+        Prosecutors.Add(lawyer.PlayerId);
         lawyer.ResetKillCooldown();
         lawyer.SetKillCooldown();
         lawyer.RpcGuardAndKill(lawyer);
         Target.Remove(lawyer.PlayerId);
         SendRPC(lawyer.PlayerId);
         var text = Utils.ColorString(Utils.GetRoleColor(CustomRoles.Lawyer), Translator.GetString(""));
-        text = string.Format(text, Utils.ColorString(Utils.GetRoleColor(CustomRoles.QSR), Translator.GetString(CustomRoles.QSR.ToString())));
+        text = string.Format(text, Utils.ColorString(Utils.GetRoleColor(CustomRoles.Prosecutors), Translator.GetString(CustomRoles.Prosecutors.ToString())));
         lawyer.Notify(text);
     }
     public static string TargetMark(PlayerControl seer, PlayerControl target)

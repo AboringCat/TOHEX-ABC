@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using TOHE.Modules.ChatManager;
 using UnityEngine;
 using static TOHE.Translator;
 
@@ -16,7 +17,6 @@ public static class Judge
     private static OptionItem TrialLimitPerMeeting;
     private static OptionItem SetTrialLimitPerGame;
     private static OptionItem TrialLimitPerGame;
-    private static OptionItem TryHideMsg;
     private static OptionItem CanTrialMadmate;
     private static OptionItem CanTrialCharmed;
     private static OptionItem CanTrialCrewKilling;
@@ -38,7 +38,6 @@ public static class Judge
         CanTrialCrewKilling = BooleanOptionItem.Create(Id + 13, "JudgeCanTrialnCrewKilling", true, TabGroup.CrewmateRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.Judge]);
         CanTrialNeutralB = BooleanOptionItem.Create(Id + 14, "JudgeCanTrialNeutralB", false, TabGroup.CrewmateRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.Judge]);
         CanTrialNeutralK = BooleanOptionItem.Create(Id + 15, "JudgeCanTrialNeutralK", true, TabGroup.CrewmateRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.Judge]);
-        TryHideMsg = BooleanOptionItem.Create(Id + 11, "JudgeTryHideMsg", true, TabGroup.CrewmateRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.Judge]);
     }
     public static void Init()
     {
@@ -50,7 +49,7 @@ public static class Judge
     {
         playerIdList.Add(playerId);
         TrialLimit.Add(playerId, TrialLimitPerMeeting.GetInt());
-        TrialLimit.Add(playerId, TrialLimitPerGame.GetInt());
+        TrialAllLimit.Add(playerId, TrialLimitPerGame.GetInt());
     
 }
     public static bool IsEnable => playerIdList.Count > 0;
@@ -81,14 +80,22 @@ public static class Judge
 
         if (operate == 1)
         {
+            if (Options.NewHideMsg.GetBool())
+            {     
+                ChatManager.SendPreviousMessagesToAll();
+            }
             Utils.SendMessage(GuessManager.GetFormatString(), pc.PlayerId);
+        
             return true;
         }
         else if (operate == 2)
         {
 
-            if (TryHideMsg.GetBool()) GuessManager.TryHideMsg();
-            else if (pc.AmOwner) Utils.SendMessage(originMsg, 255, pc.GetRealName());
+            if (Options.NewHideMsg.GetBool())
+            {
+                ChatManager.SendPreviousMessagesToAll();
+            }
+            else if (pc.AmOwner && !isUI) Utils.SendMessage(originMsg, 255, pc.GetRealName());
 
             if (!MsgToPlayerAndRole(msg, out byte targetId, out string error))
             {
@@ -215,6 +222,10 @@ public static class Judge
     {
         int PlayerId = reader.ReadByte();
         TrialMsg(pc, $"/tl {PlayerId}", true);
+        if (Options.NewHideMsg.GetBool())
+        {
+            ChatManager.SendPreviousMessagesToAll();
+        }
     }
 
     private static void JudgeOnClick(byte playerId, MeetingHud __instance)
@@ -224,6 +235,10 @@ public static class Judge
         if (pc == null || !pc.IsAlive() || !GameStates.IsVoting) return;
         if (AmongUsClient.Instance.AmHost) TrialMsg(PlayerControl.LocalPlayer, $"/tl {playerId}", true);
         else SendRPC(playerId);
+        if (Options.NewHideMsg.GetBool())
+        {
+            ChatManager.SendPreviousMessagesToAll();
+        }
     }
 
     [HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.Start))]

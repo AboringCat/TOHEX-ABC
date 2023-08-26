@@ -55,8 +55,8 @@ public static class Sheriff
         Deputy.SkillLimitOpt = IntegerOptionItem.Create(Id + 44, "DeputySkillLimit", new(1, 990, 1), 3, TabGroup.CrewmateRoles, false).SetParent(HasDeputy)
             .SetValueFormat(OptionFormat.Times);
         Deputy.DeputyCanBeSheriff = BooleanOptionItem.Create(Id + 46, "DCBS", false, TabGroup.CrewmateRoles, false).SetParent(HasDeputy);
-        Deputy.DeputyKnowWhosSheriff = BooleanOptionItem.Create(Id + 48, "DeputyKnowWhosSheriff", true, TabGroup.CrewmateRoles, false).SetParent(Deputy.DeputyCanBeSheriff);
-        Deputy.SheriffKnowWhosDeputy = BooleanOptionItem.Create(Id + 50, "SheriffKnowWhosDeputy", true, TabGroup.CrewmateRoles, false).SetParent(Deputy.DeputyCanBeSheriff); 
+        Deputy.DeputyKnowWhosSheriff = BooleanOptionItem.Create(Id + 48, "DeputyKnowWhosSheriff", true, TabGroup.CrewmateRoles, false).SetParent(HasDeputy);
+        Deputy.SheriffKnowWhosDeputy = BooleanOptionItem.Create(Id + 50, "SheriffKnowWhosDeputy", true, TabGroup.CrewmateRoles, false).SetParent(HasDeputy); 
     }
     public static void SetUpNeutralOptions(int Id)
     {
@@ -92,6 +92,20 @@ public static class Sheriff
         if (!Main.ResetCamPlayerList.Contains(playerId))
             Main.ResetCamPlayerList.Add(playerId);
     }
+    public static void Remove(byte playerId)
+    {
+        playerIdList.Remove(playerId);
+        if (CurrentKillCooldown.ContainsKey(playerId))
+            CurrentKillCooldown.Remove(playerId);
+        if (ShotLimit.ContainsKey(playerId))
+            ShotLimit.Remove(playerId);
+        Logger.Info($"{Utils.GetPlayerById(playerId)?.GetNameWithRole()} : 残り{ShotLimit[playerId]}発", "Sheriff");
+
+        if (!AmongUsClient.Instance.AmHost) return;
+        if (Main.ResetCamPlayerList.Contains(playerId))
+            Main.ResetCamPlayerList.Remove(playerId);
+    }
+
     public static bool IsEnable => playerIdList.Count > 0;
     private static void SendRPC(byte playerId)
     {

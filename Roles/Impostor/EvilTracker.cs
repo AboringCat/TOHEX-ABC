@@ -48,7 +48,7 @@ public static class EvilTracker
         OptionTargetMode = StringOptionItem.Create(Id + 11, "EvilTrackerTargetMode", TargetModeText, 2, TabGroup.ImpostorRoles, false)
             .SetParent(CustomRoleSpawnChances[CustomRoles.EvilTracker]);
         OptionCanSeeLastRoomInMeeting = BooleanOptionItem.Create(Id + 12, "EvilTrackerCanSeeLastRoomInMeeting", false, TabGroup.ImpostorRoles, false)
-            .SetParent(CustomRoleSpawnChances[CustomRoles.EvilTracker]);
+            .SetParent(CustomRoleSpawnChances[CustomRoles.EvilTracker]).SetHidden(true);
     }
     public static void Init()
     {
@@ -170,6 +170,7 @@ public static class EvilTracker
     }
 
     // 表示系の関数
+
     public static string GetMarker(byte playerId) => CanTarget(playerId) ? Utils.ColorString(Palette.ImpostorRed.ShadeColor(0.5f), "◁") : "";
     public static string GetTargetMark(PlayerControl seer, PlayerControl target) => GetTargetId(seer.PlayerId) == target.PlayerId ? Utils.ColorString(Palette.ImpostorRed, "◀") : "";
     public static string GetTargetArrow(PlayerControl seer, PlayerControl target)

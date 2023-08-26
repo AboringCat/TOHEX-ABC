@@ -51,7 +51,7 @@ public static class Gamer
         foreach (var pc in Main.AllAlivePlayerControls)
             PlayerHealth.TryAdd(pc.PlayerId, HealthMax.GetInt());
 
-        if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost) return;
+          if (!AmongUsClient.Instance.AmHost) return;
         if (!Main.ResetCamPlayerList.Contains(playerId))
             Main.ResetCamPlayerList.Add(playerId);
     }

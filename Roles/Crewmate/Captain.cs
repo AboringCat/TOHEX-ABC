@@ -1,5 +1,6 @@
 ﻿using Hazel;
 using System.Collections.Generic;
+using TOHE.Roles.Double;
 using UnityEngine;
 using static TOHE.Options;
 using static TOHE.Translator;
@@ -28,7 +29,8 @@ public static class Captain
             .SetValueFormat(OptionFormat.Seconds);
         SolicitMax = IntegerOptionItem.Create(Id + 12, "CaptainSolicitMax", new(1, 15, 1), 15, TabGroup.CrewmateRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Captain])
             .SetValueFormat(OptionFormat.Times);
-        KnowTargetRole = BooleanOptionItem.Create(Id + 13, "CaptainKnowTargetRole", true, TabGroup.CrewmateRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Captain]);
+        KnowTargetRole = BooleanOptionItem.Create(Id + 13, "CaptainKnowTargetRole", true, TabGroup.CrewmateRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Captain])
+            .SetHidden(true);
         TargetKnowOtherTarget = BooleanOptionItem.Create(Id + 14, "CaptainTargetKnowOtherTarget", true, TabGroup.CrewmateRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Captain]);
     }
     public static void Init()
@@ -41,7 +43,7 @@ public static class Captain
         playerIdList.Add(playerId);
         SolicitLimit.TryAdd(playerId, SolicitMax.GetInt());
 
-        if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost) return;
+        if (!AmongUsClient.Instance.AmHost) return;
         if (!Main.ResetCamPlayerList.Contains(playerId))
             Main.ResetCamPlayerList.Add(playerId);
     }
@@ -79,19 +81,17 @@ public static class Captain
     public static void OnCheckMurder(PlayerControl killer, PlayerControl target)
     {
         if (SolicitLimit[killer.PlayerId] < 1) return;
-        if (NiceMini.Age != 18 && !(target.Is(CustomRoles.NiceMini) || target.Is(CustomRoles.EvilMini)) || NiceMini.Age == 18)
+        if (Mini.Age != 18 && !(target.Is(CustomRoles.NiceMini) || target.Is(CustomRoles.EvilMini)) || Mini.Age == 18)
         {
                 SolicitLimit[killer.PlayerId]--;
                 SendRPC(killer.PlayerId);
-                    if (!target.CanUseKillButton() && !target.Is(CustomRoles.Solicited) || !target.Is(CustomRoles.Believer) || !target.Is(CustomRoles.NiceMini) && NiceMini.Age != 18 || !target.Is(CustomRoles.EvilMini) && NiceMini.Age != 18)
+                    if (!target.CanUseKillButton() && !target.Is(CustomRoles.Solicited) || !target.Is(CustomRoles.Believer) || !target.Is(CustomRoles.NiceMini) && Mini.Age != 18 || !target.Is(CustomRoles.EvilMini) && Mini.Age != 18)
                     {
                         target.RpcSetCustomRole(CustomRoles.Solicited);
-                        target.RpcSetCustomRole(CustomRoles.seniormanagement);
                     }
-                    if (target.CanUseKillButton() && !target.Is(CustomRoles.Solicited) || !target.Is(CustomRoles.Believer) || !target.Is(CustomRoles.NiceMini) && NiceMini.Age != 18 || !target.Is(CustomRoles.EvilMini) && NiceMini.Age != 18)
+                    if (target.CanUseKillButton() && !target.Is(CustomRoles.Solicited) || !target.Is(CustomRoles.Believer) || !target.Is(CustomRoles.NiceMini) && Mini.Age != 18 || !target.Is(CustomRoles.EvilMini) && Mini.Age != 18)
                     {
                         target.RpcSetCustomRole(CustomRoles.Solicited);
-                        target.RpcSetCustomRole(CustomRoles.seniormanagement);
                     }
                 
 
@@ -105,7 +105,7 @@ public static class Captain
             target.RpcGuardAndKill(killer);
             target.RpcGuardAndKill(target);
         }
-        else if (NiceMini.Age != 18 && (target.Is(CustomRoles.NiceMini) || target.Is(CustomRoles.EvilMini)))
+        else if (Mini.Age != 18 && (target.Is(CustomRoles.NiceMini) || target.Is(CustomRoles.EvilMini)))
         {
             killer.Notify(Utils.ColorString(Utils.GetRoleColor(CustomRoles.Captain), GetString("Cantkillkid")));
         }

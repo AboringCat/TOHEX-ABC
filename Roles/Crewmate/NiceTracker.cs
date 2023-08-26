@@ -1,201 +1,157 @@
-/*using AmongUs.GameOptions;
+using AmongUs.GameOptions;
 using Hazel;
 using Il2CppSystem.Text;
 using System.Collections.Generic;
+using TOHE.Roles.Crewmate;
 using UnityEngine;
 using static TOHE.Options;
 using static TOHE.Translator;
-
 namespace TOHE.Roles.Impostor;
 
 public static class NiceTracker
 {
-    private static readonly int Id = 2900;
+    private static readonly int Id = 418735;
     private static List<byte> playerIdList = new();
 
-    private static OptionItem OptionTargetMode;
-
-    private static TargetMode CurrentTargetMode;
-    public static RoleTypes RoleTypes;
-
-    private enum TargetMode
-    {
-        Never,
-        OnceInGame,
-        EveryMeeting,
-        Always,
-    };
-    private static readonly string[] TargetModeText =
-    {
-        "NiceTrackerTargetMode.Never",
-        "NiceTrackerTargetMode.OnceInGame",
-        "NiceTrackerTargetMode.EveryMeeting",
-        "NiceTrackerTargetMode.Always",
-    };
-
-    public static Dictionary<byte, byte> Target = new();
-    public static Dictionary<byte, bool> CanSetTarget = new();
-    private static Dictionary<byte, HashSet<byte>> ImpostorsId = new();
+    public static OptionItem SkillLimitOpt;
+    public static OptionItem SkillCooldown;
+    public static OptionItem ResetArrow;
+    private static OptionItem OptionCanSeeLastRoomInMeeting;
+    public static Dictionary<byte, int> NiceTrackerLimit = new();
+    public static bool CanSeeLastRoomInMeeting;
+    private static Dictionary<byte, string> lastPlayerName = new();
+    public static Dictionary<byte, string> msgToSend = new();
     public static void SetupCustomOption()
     {
         SetupRoleOptions(Id, TabGroup.CrewmateRoles, CustomRoles.NiceTracker);
-        OptionTargetMode = StringOptionItem.Create(Id + 11, "NiceTrackerTargetMode", TargetModeText, 2, TabGroup.CrewmateRoles, false)
-            .SetParent(CustomRoleSpawnChances[CustomRoles.NiceTracker]);
-        
+        SkillCooldown = FloatOptionItem.Create(Id + 42, "NiceTrackerSkillCooldown", new(2.5f, 900f, 2.5f), 20f, TabGroup.CrewmateRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.NiceTracker])
+           .SetValueFormat(OptionFormat.Seconds);
+        SkillLimitOpt = IntegerOptionItem.Create(Id + 44, "NiceTrackerSkillLimit", new(1, 990, 1), 3, TabGroup.CrewmateRoles, false).SetParent(Options.CustomRoleSpawnChances[CustomRoles.NiceTracker])
+             .SetValueFormat(OptionFormat.Times);
+        ResetArrow = BooleanOptionItem.Create(Id + 48, "ResetArrow", false, TabGroup.CrewmateRoles, false)
+            .SetParent(Options.CustomRoleSpawnChances[CustomRoles.NiceTracker]);
+        OptionCanSeeLastRoomInMeeting = BooleanOptionItem.Create(Id + 46, "NiceTrackerCanSeeLastRoomInMeeting", false, TabGroup.CrewmateRoles, false)
+            .SetParent(Options.CustomRoleSpawnChances[CustomRoles.NiceTracker]).SetHidden(true);
     }
     public static void Init()
     {
         playerIdList = new();
-        Target = new();
-        CanSetTarget = new();
-        ImpostorsId = new();
-
-        CurrentTargetMode = (TargetMode)OptionTargetMode.GetValue();
-        RoleTypes = CurrentTargetMode == TargetMode.Never ? RoleTypes.Impostor : RoleTypes.Impostor;
+        lastPlayerName = new();
+        msgToSend = new();
+        NiceTrackerLimit = new();
+        CanSeeLastRoomInMeeting = OptionCanSeeLastRoomInMeeting.GetBool();
     }
     public static void Add(byte playerId)
     {
         playerIdList.Add(playerId);
-        Target.Add(playerId, byte.MaxValue);
-        CanSetTarget.Add(playerId, CurrentTargetMode != TargetMode.Never);
-        //ImpostorsIdはNiceTracker内で共有
-        ImpostorsId[playerId] = new();
-        foreach (var target in Main.AllAlivePlayerControls)
-        {
-            var targetId = target.PlayerId;
-            if (targetId != playerId && target.Is(CustomRoleTypes.Impostor))
-            {
-                ImpostorsId[playerId].Add(targetId);
-                TargetArrow.Add(playerId, targetId);
-            }
-        }
-    }
-    public static bool IsEnable => playerIdList.Count > 0;
-    public static void ApplyGameOptions(byte playerId)
-    {
-        AURoleOptions.ShapeshifterCooldown = CanTarget(playerId) ? 1f : 255f;
-        AURoleOptions.ShapeshifterDuration = 1f;
-    }
-    public static void GetAbilityButtonText(HudManager __instance, byte playerId)
-    {
-        __instance.AbilityButton.ToggleVisible(CanTarget(playerId));
-        __instance.AbilityButton.OverrideText(GetString("NiceTrackerChangeButtonText"));
-    }
-
-    // 値取得の関数
-    private static bool CanTarget(byte playerId)
-        => !Main.PlayerStates[playerId].IsDead && CanSetTarget.TryGetValue(playerId, out var value) && value;
-    private static byte GetTargetId(byte playerId)
-        => Target.TryGetValue(playerId, out var targetId) ? targetId : byte.MaxValue;
-    public static bool IsTrackTarget(PlayerControl seer, PlayerControl target)
-        => seer.IsAlive() && playerIdList.Contains(seer.PlayerId)
-        && target.IsAlive() && seer != target
-        && (target.Is(CustomRoleTypes.Impostor) || GetTargetId(seer.PlayerId) == target.PlayerId);
-    public static bool KillFlashCheck(PlayerControl killer, PlayerControl target)
-    {
-        if (!CanSeeKillFlash) return false;
-        //インポスターによるキルかどうかの判別
-        var realKiller = target.GetRealKiller() ?? killer;
-        return realKiller.Is(CustomRoleTypes.Impostor) && realKiller != target;
-    }
-
-    // 各所で呼ばれる処理
-    public static void OnShapeshift(PlayerControl shapeshifter, PlayerControl target, bool shapeshifting)
-    {
-        if (!CanTarget(shapeshifter.PlayerId) || !shapeshifting) return;
-        if (target == null || target.Is(CustomRoleTypes.Impostor)) return;
-
-        SetTarget(shapeshifter.PlayerId, target.PlayerId);
-        Logger.Info($"{shapeshifter.GetNameWithRole()}のターゲットを{target.GetNameWithRole()}に設定", "NiceTrackerTarget");
-        shapeshifter.MarkDirtySettings();
-        Utils.NotifyRoles();
-    }
-    public static void AfterMeetingTasks()
-    {
-        if (CurrentTargetMode == TargetMode.EveryMeeting)
-        {
-            SetTarget();
-            Utils.MarkEveryoneDirtySettings();
-        }
-        foreach (var playerId in playerIdList)
-        {
-            var pc = Utils.GetPlayerById(playerId);
-            var target = Utils.GetPlayerById(GetTargetId(playerId));
-            if (!pc.IsAlive() || !target.IsAlive())
-                SetTarget(playerId);
-            pc?.SyncSettings();
-            pc?.RpcResetAbilityCooldown();
-        }
-    }
-    ///<summary>
-    ///引数が両方空：再設定可能に,
-    ///trackerIdのみ：該当IDのターゲット削除,
-    ///trackerIdとtargetId両方あり：該当IDのプレイヤーをターゲットに設定
-    ///</summary>
-    public static void SetTarget(byte trackerId = byte.MaxValue, byte targetId = byte.MaxValue)
-    {
-        if (trackerId == byte.MaxValue) // ターゲット再設定可能に
-            foreach (var playerId in playerIdList)
-                CanSetTarget[playerId] = true;
-        else if (targetId == byte.MaxValue) // ターゲット削除
-            Target[trackerId] = byte.MaxValue;
-        else
-        {
-            Target[trackerId] = targetId; // ターゲット設定
-            if (CurrentTargetMode != TargetMode.Always)
-                CanSetTarget[trackerId] = false; // ターゲット再設定不可に
-            TargetArrow.Add(trackerId, targetId);
-        }
+        NiceTrackerLimit.TryAdd(playerId, SkillLimitOpt.GetInt());
 
         if (!AmongUsClient.Instance.AmHost) return;
-        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SetNiceTrackerTarget, SendOption.Reliable, -1);
-        writer.Write(trackerId);
-        writer.Write(targetId);
+        if (!Main.ResetCamPlayerList.Contains(playerId))
+            Main.ResetCamPlayerList.Add(playerId);
+    }
+    public static void Remove(byte playerId)
+    {
+        playerIdList.Remove(playerId);
+        NiceTrackerLimit.Remove(playerId);
+
+        if (!AmongUsClient.Instance.AmHost) return;
+        if (Main.ResetCamPlayerList.Contains(playerId))
+            Main.ResetCamPlayerList.Remove(playerId);
+    }
+    public static bool IsEnable => playerIdList.Count > 0;
+    private static void SendRPC(byte playerId, bool add, Vector3 loc = new())
+    {
+        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SetNiceTrackerArrow, SendOption.Reliable, -1);
+        writer.Write(playerId);
+        writer.Write(add);
+        if (add)
+        {
+            writer.Write(loc.x);
+            writer.Write(loc.y);
+            writer.Write(loc.z);
+        }
         AmongUsClient.Instance.FinishRpcImmediately(writer);
     }
+    public static bool CanUseKillButton(byte playerId)
+        => !Main.PlayerStates[playerId].IsDead
+        && (NiceTrackerLimit.TryGetValue(playerId, out var x) ? x : 1) >= 1;
+    public static void SetKillCooldown(byte id) => Main.AllPlayerKillCooldown[id] = CanUseKillButton(id) ? SkillCooldown.GetFloat() : 300f;
+    public static string GetSkillLimit(byte playerId) => Utils.ColorString(CanUseKillButton(playerId) ? Utils.GetRoleColor(CustomRoles.NiceTracker) : Color.gray, NiceTrackerLimit.TryGetValue(playerId, out var niceTrackerLimit) ? $"({niceTrackerLimit})" : "Invalid");
     public static void ReceiveRPC(MessageReader reader)
     {
-        byte trackerId = reader.ReadByte();
-        byte targetId = reader.ReadByte();
-        SetTarget(trackerId, targetId);
+        byte playerId = reader.ReadByte();
+        bool add = reader.ReadBoolean();
+        if (add)
+            LocateArrow.Add(playerId, new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle()));
+        else
+            LocateArrow.RemoveAllTarget(playerId);
+        byte PlayerId = reader.ReadByte();
+        int Limit = reader.ReadInt32();
+        if (NiceTrackerLimit.ContainsKey(PlayerId))
+            NiceTrackerLimit[PlayerId] = Limit;
+        else
+            NiceTrackerLimit.Add(PlayerId, SkillLimitOpt.GetInt());
     }
-
-    // 表示系の関数
-    public static string GetMarker(byte playerId) => CanTarget(playerId) ? Utils.ColorString(Palette.ImpostorRed.ShadeColor(0.5f), "◁") : "";
-    public static string GetTargetMark(PlayerControl seer, PlayerControl target) => GetTargetId(seer.PlayerId) == target.PlayerId ? Utils.ColorString(Palette.ImpostorRed, "◀") : "";
-    public static string GetTargetArrow(PlayerControl seer, PlayerControl target)
+    public static bool IsPlayer(PlayerControl seer, PlayerControl target)
+    => seer.IsAlive() && playerIdList.Contains(seer.PlayerId)&& target.IsAlive() && seer != target && (target.Is(CustomRoleTypes.Impostor) || target.Is(CustomRoleTypes.Crewmate) || target.Is(CustomRoleTypes.Neutral));
+    public static bool OnCheckMurder(PlayerControl killer, PlayerControl target)
     {
-        if (!GameStates.IsInTask || !target.Is(CustomRoles.NiceTracker)) return "";
-
-        var trackerId = target.PlayerId;
-        if (seer.PlayerId != trackerId) return "";
-
-        ImpostorsId[trackerId].RemoveWhere(id => Main.PlayerStates[id].IsDead);
-
-        var sb = new StringBuilder(80);
-        if (ImpostorsId[trackerId].Count > 0)
+        var Tracker = target.PlayerId;
+        NiceTrackerLimit[killer.PlayerId]--;
+        killer.ResetKillCooldown();
+        killer.SetKillCooldown();
+        killer.RpcGuardAndKill(target);
+        Logger.Info($"qwq", "Warlock");
+        var pos = killer.GetTruePosition();
+        float minDis = float.MaxValue;
+        string minName = "";
+        foreach (var pc in Main.AllAlivePlayerControls)
         {
-            sb.Append($"<color={Utils.GetRoleColorCode(CustomRoles.Impostor)}>");
-            foreach (var impostorId in ImpostorsId[trackerId])
+            if (pc.PlayerId == killer.PlayerId) continue;
+            var dis = Vector2.Distance(pc.GetTruePosition(), pos);
+            if (dis < minDis && dis < 1.5f)
             {
-                sb.Append(TargetArrow.GetArrows(target, impostorId));
+                minDis = dis;
+                minName = pc.GetRealName();
             }
-            sb.Append($"</color>");
         }
 
-        var targetId = Target[trackerId];
-        if (targetId != byte.MaxValue)
+        lastPlayerName.TryAdd(killer.PlayerId, minName);
+        foreach (var pc in playerIdList)
         {
-            sb.Append(Utils.ColorString(Color.white, TargetArrow.GetArrows(target, targetId)));
+            var player = Utils.GetPlayerById(pc);
+            if (player == null || !player.IsAlive()) continue;
+            LocateArrow.Add(pc, killer.transform.position);
+            SendRPC(pc, true, killer.transform.position);
         }
-        return sb.ToString();
+        return false;
+    }
+    public static void OnReportDeadBody(PlayerControl pc, GameData.PlayerInfo target)
+    {
+        if (ResetArrow.GetBool())
+        {
+            foreach (var apc in playerIdList)
+            {
+                Main.ForNiceTracker.Remove(apc);
+                LocateArrow.RemoveAllTarget(apc);
+                SendRPC(apc, false);
+            }
+        }
+    }
+    public static string GetTargetArrow(PlayerControl seer, PlayerControl target = null)
+    {
+        if (!seer.Is(CustomRoles.NiceTracker)) return "";
+        if (target != null && seer.PlayerId != target.PlayerId) return "";
+        if (GameStates.IsMeeting) return "";
+        return Utils.ColorString(Utils.GetRoleColor(seer.GetCustomRole()), LocateArrow.GetArrows(seer));
     }
     public static string GetArrowAndLastRoom(PlayerControl seer, PlayerControl target)
     {
-        string text = Utils.ColorString(Palette.ImpostorRed, TargetArrow.GetArrows(seer, target.PlayerId));
+        string text = Utils.ColorString(new Color32(0, 203, 128, byte.MaxValue), TargetArrow.GetArrows(seer, target.PlayerId));
         var room = Main.PlayerStates[target.PlayerId].LastRoom;
         if (room == null) text += Utils.ColorString(Color.gray, "@" + GetString("FailToTrack"));
-        else text += Utils.ColorString(Palette.ImpostorRed, "@" + GetString(room.RoomId.ToString()));
+        else text += Utils.ColorString(new Color32(0, 203, 128, byte.MaxValue), "@" + GetString(room.RoomId.ToString()));
         return text;
     }
-}*/
+}

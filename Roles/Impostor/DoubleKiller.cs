@@ -1,6 +1,9 @@
-﻿using System;
+﻿using MS.Internal.Xml.XPath;
+using System;
 using System.Collections.Generic;
 using static TOHE.Options;
+using Il2CppMono.Security;
+using Lotus.Roles.Internals;
 
 namespace TOHE;
 
@@ -27,6 +30,7 @@ public static class DoubleKiller
     }
     public static void Add(byte playerId)
     {
+        Main.DoubleKillerKillSeacond.Add(playerId, Utils.GetTimeStamp());
         playerIdList.Add(playerId);
         NowCooldown.TryAdd(playerId, DoubleKillerKillColldown.GetFloat());
     }
@@ -50,5 +54,10 @@ public static class DoubleKiller
             killer.SyncSettings();
             Logger.Info($"wwwwwww", "ReportDeadbody");
         }       
+    }
+    public static void OnReportDeadBody(PlayerControl pc, GameData.PlayerInfo target)
+    {
+        NowCooldown[pc.PlayerId] = Math.Clamp(NowCooldown[pc.PlayerId] = DoubleKillerKillColldown.GetFloat(), 0, DoubleKillerKillColldown.GetFloat());
+        Main.DoubleKillerMax.Remove(pc.PlayerId);
     }
 }

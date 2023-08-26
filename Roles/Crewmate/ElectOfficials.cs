@@ -30,7 +30,7 @@ public static class ElectOfficials
         playerIdList.Add(playerId);
         ElectLimit.TryAdd(playerId, 1);
 
-        if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost) return;
+        if (!AmongUsClient.Instance.AmHost) return;
         if (!Main.ResetCamPlayerList.Contains(playerId))
             Main.ResetCamPlayerList.Add(playerId);
     }

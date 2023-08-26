@@ -154,7 +154,10 @@ public static class Divinator
                 CustomRoles.Deputy or
                 CustomRoles.DemonHunterm or
                 CustomRoles.TimeStops or
-                CustomRoles.Grenadiers
+                CustomRoles.Grenadiers or
+                CustomRoles.PlagueDoctor or
+                CustomRoles.NiceSwapper or
+                CustomRoles.EvilSwapper
                 => "Strong",
 
                 CustomRoles.Witch or
@@ -167,8 +170,9 @@ public static class Divinator
                 CustomRoles.Workaholic or
                 CustomRoles.Provocateur or
                 CustomRoles.Lawyer or
-                CustomRoles.QSR or
-                CustomRoles.Masochism
+                CustomRoles.Prosecutors or
+                CustomRoles.Masochism or
+                CustomRoles.Yandere
                 => "Incomprehensible",
 
                 CustomRoles.FireWorks or
@@ -188,7 +192,7 @@ public static class Divinator
                 CustomRoles.Detective or
                 CustomRoles.TimeManager or
                 CustomRoles.Jester or
-                CustomRoles.Medicaler or
+                CustomRoles.Medic or
                 CustomRoles.DarkHide or
                 CustomRoles.CursedWolf or
                 CustomRoles.OverKiller or

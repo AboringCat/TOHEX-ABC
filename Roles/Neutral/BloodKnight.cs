@@ -8,7 +8,7 @@ namespace TOHE.Roles.Neutral;
 
 public static class BloodKnight
 {
-    private static readonly int Id = 50923;
+    private static readonly int Id = 5092300;
     public static List<byte> playerIdList = new();
 
     private static OptionItem KillCooldown;
@@ -38,7 +38,7 @@ public static class BloodKnight
         playerIdList.Add(playerId);
         TimeStamp.TryAdd(playerId, 0);
 
-                if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost) return;
+                  if (!AmongUsClient.Instance.AmHost) return;
         if (!Main.ResetCamPlayerList.Contains(playerId))
             Main.ResetCamPlayerList.Add(playerId);
     }

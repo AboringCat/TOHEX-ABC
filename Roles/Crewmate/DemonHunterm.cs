@@ -32,7 +32,7 @@ public static class DemonHunterm
             Main.ResetCamPlayerList.Add(playerId);
     }
     public static bool IsEnable => playerIdList.Count > 0;
-    private static void SendRPC(byte playerId)
+    public static void SendRPC(byte playerId)
     {
         MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SetDemonHuntermSellLimit, SendOption.Reliable, -1);
         writer.Write(playerId);
@@ -55,19 +55,7 @@ public static class DemonHunterm
     public static string GetSkillLimit(byte playerId) => Utils.ColorString(CanUseKillButton(playerId) ? Utils.GetRoleColor(CustomRoles.DemonHunterm) : Color.gray, DemonHunterLimit.TryGetValue(playerId, out var demonHunterLimit) ? $"({demonHunterLimit})" : "Invalid");
     public static bool OnCheckMurder(PlayerControl killer, PlayerControl target)
     {
-        if (DemonHunterLimit[killer.PlayerId] <= 0)
-        {
-            NameNotifyManager.Notify(killer, Utils.ColorString(Utils.GetRoleColor(CustomRoles.Deputy), ("您没有力量了！通过报告尸体来汲取力量"))); ;
-            return false;
-        }
-        DemonHunterLimit[killer.PlayerId]--;
-        Utils.TP(killer.NetTransform, target.GetTruePosition());
-        RPC.PlaySoundRPC(killer.PlayerId, Sounds.KillSound);
-        target.SetRealKiller(killer);
-        Main.PlayerStates[target.PlayerId].SetDead();
-        killer.SetKillCooldownV2();
-        target.RpcMurderPlayerV3(target);
-        Main.PlayerStates[target.PlayerId].deathReason = PlayerState.DeathReason.Kill;
-        return false;
+        if (DemonHunterLimit[killer.PlayerId] > 0) return false;
+        return true;
     }   
  }

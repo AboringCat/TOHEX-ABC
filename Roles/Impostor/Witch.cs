@@ -251,7 +251,7 @@ public static class Witch
 
     public static void OnEnterVent(PlayerControl pc)
     {
-        if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost) return;
+          if (!AmongUsClient.Instance.AmHost) return;
         if (playerIdList.Contains(pc.PlayerId))
         {
             if (NowSwitchTrigger is SwitchTrigger.Vent)

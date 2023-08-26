@@ -33,7 +33,7 @@ public static class Merchant
         playerIdList.Add(playerId);
         MerchantLimit.TryAdd(playerId, SkillLimitOpt.GetInt());
 
-        if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost) return;
+          if (!AmongUsClient.Instance.AmHost) return;
         if (!Main.ResetCamPlayerList.Contains(playerId))
             Main.ResetCamPlayerList.Add(playerId);
     }
@@ -43,7 +43,7 @@ public static class Merchant
         playerIdList.Remove(playerId);
         MerchantLimit.Remove(playerId);
 
-        if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost) return;
+          if (!AmongUsClient.Instance.AmHost) return;
         if (Main.ResetCamPlayerList.Contains(playerId))
             Main.ResetCamPlayerList.Remove(playerId);
     }
