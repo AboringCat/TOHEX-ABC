@@ -1,8 +1,11 @@
 
 <h1 align="center">~ TOHEX-A boring cat分支 ~</h1>
 
-<br>
+## Language
+[English](https://github.com/AboringCat/TOHEX-ABC/README-EN.md)
+[日本語](https://github.com/AboringCat/TOHEX-ABC/README-JP.md)
 
+<br>
 <img align="left" alt="Cover" src="Resources/Images/TOHE-BG.jpg" width="50%" height="auto" /> 
 
 <p align="right">
@@ -17,8 +20,7 @@
 <a href="https://gitee.com/a-bor-cat/tohex-abc/releases/" target="_blank"><img src="https://img.shields.io/badge/Gitee获取新版本%20-%231DA1F2.svg?&style=for-the-badge&logo=gitee&logoColor=white&color=FFA500"/></a>
 <a href="https://github.com/AboringCat/TOHEX-ABC" target="_blank"><img src="https://img.shields.io/badge/GitHub%20-%231DA1F2.svg?&style=for-the-badge&logo=github&logoColor=white&color=000000"/></a>
 <a href="https://github.com/AboringCat/TOHEX-ABC/releases" target="_blank"><img src="https://img.shields.io/badge/GitHubReleases%20-%231DA1F2.svg?&style=for-the-badge&logo=github&logoColor=white&color=000000"/></a>
-<a href="https://discord.gg/WKYdzxKhNm" target="_blank"><img src="https://img.shields.io/badge/Discord%20-%231DA1F2.svg?&style=for-the-badge&logo=discord&logoColor=white&color=4169E1"/></a>
-<a href="http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=92p_Sv_eLa544FWS83251lPQxpok_i2s&authKey=e918u6eWXT9x2kVo88PPMdEIzg3wZARl0duYhLke9DKhLwujwsmcTKpovM8X01l%2B&noverify=0&group_code=680951911" target="_blank"><img src="https://img.shields.io/badge/QQ%20-%231DA1F2.svg?&style=for-the-badge&logo=TencentQQ&logoColor=white&color=FFFFFF"/></a>
+
 </p>
 
 
@@ -47,16 +49,5 @@
 
 
 
-**船员职业**
-幸运儿,网红.市长...
-
-**内鬼职业**
-赏金，赌怪，紊乱...
-
-**中立职业**
-奴隶主,豺狼,鹈鹕...
-
-
-**另外我会将不稳定的版本放入Public-Beta中,欢迎体验！！**
-
->新日志:由于我不知道怎么做好一款AU模组,所以我放弃了做分支的想法,我决定把这个mod视为基于TOHEX基础上整些小活的娱乐项目,感谢支持!
+**職業靈感來源**
+TOH,TOHE,TOU(R),TOR,ATR..

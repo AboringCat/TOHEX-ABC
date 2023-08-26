@@ -22,19 +22,20 @@ namespace TOHE;
 public class Main : BasePlugin
 {
     // == プログラム設定 / Program Config ==
-    public static readonly string ModName = "TOHEX";
+    public static readonly string ModName = "Town Of Host Edited-Xi";
     public static readonly string ModColor = "#fffcbe";
     public static readonly bool AllowPublicRoom = true;
-    public static readonly string ForkId = "TOHEX";
+    public static readonly string ForkId = "TOHEXi";
     public const string OriginalForkId = "OriginalTOH";
     public static HashAuth DebugKeyAuth { get; private set; }
     public const string DebugKeyHash = "c0fd562955ba56af3ae20d7ec9e64c664f0facecef4b3e366e109306adeae29d";
     public const string DebugKeySalt = "59687b";
     public static ConfigEntry<string> DebugKeyInput { get; private set; }
     public static readonly string MainMenuText = "<color=#fffcbe>喜！</color><color=#FF0066>瓜！</color><color=#FFFF00>叨！</color>";
-    public const string PluginGuid = "com.xi.tohex";
-    public const string PluginVersion = "1.5.1";
-    public const string CanaryPluginVersion = "裤";
+    public const string PluginGuid = "com.xi.tohexi";
+    public const string PluginVersion = "2.0.0.5";
+    public const string PluginDisplayVersion = "2.0.0c(beta)";
+    public const string CanaryPluginVersion = "Canary_裤";
     public const int PluginCreate = 7;
 
     //没错，那个没树枝的N删了
@@ -98,17 +99,22 @@ public class Main : BasePlugin
     public static List<PlayerControl> LoversPlayers = new();
     public static List<PlayerControl> CrushLoversPlayers = new();
     public static List<PlayerControl> CupidLoversPlayers = new();
+    public static List<PlayerControl> AkujoLoversPlayers = new();
     public static List<PlayerControl> HunterTarget = new();
     public static List<PlayerControl> seniormanagementPlayers = new();
     public static int StrikersShields = new();
     public static bool isLoversDead = true;
     public static bool isCrushLoversDead = true;
     public static bool isCupidLoversDead = true;
+    public static bool isAkujoLoversDead = true;
     public static bool isjackalDead = true;
     public static bool isSheriffDead = true; 
     public static bool isseniormanagementDead = true;
+    public static bool isMKDead = true;
     public static bool isHunterDead = true;
     public static Dictionary<byte, float> AllPlayerKillCooldown = new();
+    public static Dictionary<byte, float> EvilMiniKillcooldown = new();
+    public static float EvilMiniKillcooldownf = new();
     public static Dictionary<byte, Vent> LastEnteredVent = new();
     public static Dictionary<byte, Vector2> LastEnteredVentLocation = new();
     public static List<byte> CyberStarDead = new();
@@ -170,7 +176,8 @@ public class Main : BasePlugin
     public static byte currentDrawTarget = byte.MaxValue;
     public static float DefaultCrewmateVision;
     public static float DefaultImpostorVision;
-    public static bool IsInitialRelease = DateTime.Now.Month == 1 && DateTime.Now.Day is 17;
+    public static bool IsTOHEInitialRelease = DateTime.Now.Month == 1 && DateTime.Now.Day is 17;
+    public static bool IsInitialRelease = DateTime.Now.Month == 5 && DateTime.Now.Day is 20;
     public static bool IsAprilFools = DateTime.Now.Month == 4 && DateTime.Now.Day is 1;
     //public static bool IsTOHEjnr = DateTime.Now.Month == 5 && DateTime.Now.Day is 20;
     public static bool ResetOptions = true;
@@ -202,7 +209,7 @@ public class Main : BasePlugin
     public static Dictionary<byte, int> StinkyAncestorKill = new();
     public static Dictionary<byte, long> NiceShieldsInProtect = new();
     public static List<byte> DeputyInProtect = new();
-    public static List<byte> QSRInProtect = new();
+    public static List<byte> ProsecutorsInProtect = new();
     public static List<byte> TimeStopsstop = new();
     public static Dictionary<byte, Vector2> TimeMasterbacktrack = new();
     public static Dictionary<byte, Vector2> SignalLocation = new();
@@ -212,10 +219,12 @@ public class Main : BasePlugin
     public static List<byte> DemolitionManiacKill = new();
     public static Dictionary<byte, int> CrushMax = new();
     public static Dictionary<byte, int> CupidMax = new();
+    public static Dictionary<byte, int> AkujoMax = new();
     public static Dictionary<byte, int> HunterMax = new();
     public static int DyingTurns = new();
     public static Dictionary<byte, int> PGuesserMax = new();
     public static List<PlayerControl> CupidLoveList = new();
+    public static List<PlayerControl> CupidShieldList = new();
     public static Dictionary<byte, int> SlaveownerMax = new();
     public static List<byte> ForSlaveowner = new();
     public static List<byte> ForSpellmaster = new();
@@ -264,16 +273,34 @@ public class Main : BasePlugin
     public static Dictionary<byte, long> NiceMiniTime = new(); 
           public static Dictionary<byte, long> GetUp = new();
     public static Dictionary<byte, long> DoubleKillerKillSeacond = new();
-    public static List<byte> DoubleKillerMax = new(); 
+    public static List<byte> DoubleKillerMax = new();
+    public static List<byte> ForNiceTracker = new();
+    public static List<byte> NeedKillYandere = new();
+    public static List<byte> ForYandere = new();
+    public static List<byte> ForSleeve = new();
+    public static List<byte> ForMimicKiller = new();
+    public static List<byte> IsShapeShifted = new();
+    public static List<byte> ForMedusa = new();
+    public static List<byte> FakeMath = new();
+    public static List<byte> NotKIller = new();
+    public static List<byte> ForFake = new();
+    public static Dictionary<byte,byte> NeedFake = new();
+    public static Dictionary<byte, int> FakeMax = new();
+    public static List<byte> ForCluster = new();
+    public static Dictionary<byte, int> TomKill = new();
+    public static Dictionary<byte, int> ChattyMax = new();
+    public static List<byte> ForSpiritualists = new();
+    public static Dictionary<byte, Vector2> Spiritualistsbacktrack = new();
 
     public static Dictionary<byte, CustomRoles> DevRole = new();
     public static Dictionary<byte, CustomRoles> AllPlayerCustomRoles = new();
     public static List<byte> WrongedList = new();
     public static List<byte> MerchantProject = new();
     public static List<byte> MerchantLeiDa = new();
+    public static bool NiceSwapSend;
+    public static bool EvilSwapSend;
     public static int MerchantTaskMax = new();
     public static Dictionary<byte, int> MerchantMax = new();
-
     public static IEnumerable<PlayerControl> AllPlayerControls => PlayerControl.AllPlayerControls.ToArray().Where(p => p != null);
     public static IEnumerable<PlayerControl> AllAlivePlayerControls => PlayerControl.AllPlayerControls.ToArray().Where(p => p != null && p.IsAlive() && !p.Data.Disconnected && !Pelican.IsEaten(p.PlayerId));
 
@@ -310,7 +337,7 @@ public class Main : BasePlugin
         //FastBoot = Config.Bind("Client Options", "FastBoot", false);
         VersionCheat = Config.Bind("Client Options", "VersionCheat", false);
         GodMode = Config.Bind("Client Options", "GodMode", false);
-        CanPublic = Config.Bind("Client Options", "CanPublic", false);
+        //CanPublic = Config.Bind("Client Options", "CanPublic", false);
 
 
         Logger = BepInEx.Logging.Logger.CreateLogSource("TOHEX");
@@ -371,7 +398,6 @@ public class Main : BasePlugin
                 {CustomRoles.GuardianAngel, "#ffffff"},
                 //伪装者颜色设置
                 {CustomRoles.Disorder, "#666699" },
-                {CustomRoles.ImpostorSchrodingerCat,"#ff1919" },
                 {CustomRoles.EvilMini, "#FF0000" },
                 //双
                 {CustomRoles.Mini, "#FFFFFF" },
@@ -390,7 +416,7 @@ public class Main : BasePlugin
                 {CustomRoles.Doctor, "#80ffdd"},
                 {CustomRoles.Dictator, "#df9b00"},
                 {CustomRoles.Detective, "#663333" },
-                {CustomRoles.SwordsMan, "#f0e68c"},
+                {CustomRoles.SwordsMan, "#CB1E46"},
                 {CustomRoles.NiceGuesser, "#eede26"},
                 {CustomRoles.Transporter, "#42D1FF"},
                 {CustomRoles.TimeManager, "#6495ed"},
@@ -398,14 +424,14 @@ public class Main : BasePlugin
                 {CustomRoles.Bodyguard, "#185abd"},
                 {CustomRoles.Counterfeiter, "#e0e0e0"},
                 {CustomRoles.Grenadier, "#3c4a16"},
-                {CustomRoles.Medicaler, "#00a4ff"},
+                {CustomRoles.Medic, "#7EFBC2"},
                 {CustomRoles.Divinator, "#882c83"},
                 {CustomRoles.Glitch, "#dcdcdc"},
                 {CustomRoles.Judge, "#f8d85a"},
                 {CustomRoles.Mortician, "#333c49"},
                 {CustomRoles.Mediumshiper, "#7a8c92"},
                 {CustomRoles.Observer, "#a8e0fa"},
-                {CustomRoles.DovesOfNeace, "#FFFFFF" },
+                {CustomRoles.DovesOfNeace, "#90EE90" },
                 {CustomRoles.NiceMini, "#FFFFFF" },
                 {CustomRoles.LostCrew, "#666666"},
                 {CustomRoles.Rudepeople, "#66CC00"},
@@ -423,7 +449,6 @@ public class Main : BasePlugin
                 {CustomRoles.TimeMaster,"#44baff" },
                 {CustomRoles.SuperPowers,"#FF6600" },
                 {CustomRoles.ET,"#cd44c8" },
-                {CustomRoles.CrewSchrodingerCat,"#ffffff" },
                 {CustomRoles.GlennQuagmire,"#FF3333" },
                 {CustomRoles.EIReverso,"#663366" },
                 {CustomRoles.SoulSeeker,"#006666" },
@@ -438,13 +463,19 @@ public class Main : BasePlugin
                 {CustomRoles.SpeedUp,"#669966" },
                 {CustomRoles.ChiefOfPolice,"#f8cd46" },
                 {CustomRoles.Fugitive,"#FF9900" },
-                {CustomRoles.Manipulator,"#FF3300" },
+                {CustomRoles.Manipulator,"#2E6B78" },
                 {CustomRoles.NiceTracker, "#00cb80" },
                 {CustomRoles.Spiritualizer,"#00CCFF"},
-                {CustomRoles.Knight,"#CC6600" },
+                {CustomRoles.Knight,"#C0C0C0" },
                 {CustomRoles.Nurse,"#99CCFF" },
                 {CustomRoles.Hunter,"#f7eea9" },
-                {CustomRoles.Merchant,"#CC6600" },
+                {CustomRoles.Merchant,"#C8B094" },
+                {CustomRoles.Buried,"#336666" },
+                {CustomRoles.Chameleon, "#01C834"},
+                {CustomRoles.NiceSwapper, "#922348"},
+                 {CustomRoles.Tom,"#87CEFA" },
+                 {CustomRoles.Copycat,"#00CC00" },
+                {CustomRoles.Spiritualists,"#87CEFA" },
                 //中立职业颜色设置
                 {CustomRoles.Arsonist, "#ff6633"},
                 {CustomRoles.Jester, "#ec62a5"},
@@ -478,28 +509,31 @@ public class Main : BasePlugin
                 {CustomRoles.StinkyAncestor, "#996600" },
                 {CustomRoles.YinLang,"#6A5ACD" },
                 {CustomRoles.Amnesiac,"#87CEFA" },
-                {CustomRoles.Swapper,"#565656" },
-                {CustomRoles.Lawyer, "#949e52"},
-                {CustomRoles.QSR, "#949e52"},
+                {CustomRoles.Shifter,"#565656" },
+                {CustomRoles.Lawyer, "#788514"},
+                {CustomRoles.Prosecutors, "#788514"},
                 {CustomRoles.Whoops,"#00b4eb" },
                 {CustomRoles.Sidekick,"#00b4eb"},
-                {CustomRoles.SchrodingerCat,"#666666" },
-                {CustomRoles.GamerSchrodingerCat,"#68bc71" },
-                {CustomRoles.BloodSchrodingerCat,"#630000" },
-                {CustomRoles.JSchrodingerCat,"#00b4eb" },
-                {CustomRoles.YLSchrodingerCat,"#6A5ACD" },
-                {CustomRoles.PGSchrodingerCat, "#101010"},
-                {CustomRoles.DHSchrodingerCat, "#483d8b"},
+                
+                {CustomRoles.SchrodingerCat, "#666666" },
                 {CustomRoles.Crush,"#ff79ce" },
                 {CustomRoles.Slaveowner,"#996600" },
                 {CustomRoles.Jealousy, "#996666"},
-                {CustomRoles.OKSchrodingerCat, "#CC6600"},
                 {CustomRoles.SourcePlague, "#CCCC33"},
                   {CustomRoles.PlaguesGod, "#101010"},
                 {CustomRoles.King,"#FFCC00" },
                 {CustomRoles.Exorcist,"#336666" },
-                {CustomRoles.Cupid, "#ff80c0" },
+                {CustomRoles.Cupid, "#F69896" },
+                {CustomRoles.Akujo, "#8E4593" },
                 {CustomRoles.Injured, "#00ffcc"},
+                {CustomRoles.Yandere, "#ff00ff" },
+                {CustomRoles.PlagueDoctor, "#feb92d"},
+                {CustomRoles.Fake,"#333333" },
+                {CustomRoles.RewardOfficer,"#669966" },
+                {CustomRoles.Chatty,"#336699" },
+                {CustomRoles.Loners, "#B0C4DE"},
+                {CustomRoles.MrDesperate,"#808080" },
+                {CustomRoles.Meditator,"#669999" },
                 //管理员
                 {CustomRoles.GM, "#ff5b70"},
                 //附加职业颜色设置
@@ -507,7 +541,9 @@ public class Main : BasePlugin
                 {CustomRoles.LastImpostor, "#ff1919"},
                 {CustomRoles.CrushLovers, "#ff79ce"},
                 {CustomRoles.Lovers, "#ff9ace"},
-                {CustomRoles.CupidLovers, "#ff80c0" },
+                {CustomRoles.CupidLovers, "#F69896" },
+                {CustomRoles.Honmei, "#8E4593" },
+                {CustomRoles.Backup, "#8E4593" },
                 {CustomRoles.Ntr, "#00a4ff"},
                 {CustomRoles.Madmate, "#ff1919"},
                 {CustomRoles.Watcher, "#800080"},
@@ -542,15 +578,16 @@ public class Main : BasePlugin
                 {CustomRoles.involution,"#708090"},
                 {CustomRoles.Diseased, "#AAAAAA"},
                 {CustomRoles.seniormanagement, "#0089ff"},
-                {CustomRoles.Believer, "#000000"},
+                {CustomRoles.Believer, "#FFD700"},
                 {CustomRoles.DeathGhost,"#B22222" },
                 {CustomRoles.Energizer,"#9900FF" },
                 {CustomRoles.Originator,"#CC9999" },
                 {CustomRoles.QL,"#66ff5c" },
-                {CustomRoles.ProfessionGuesser, "#561800"},
+                {CustomRoles.ProfessionGuesser, "#ff0000"},
                 {CustomRoles.Signal, "#ff9900"},
                 {CustomRoles.VIP,"#f6f657" },
                 {CustomRoles.Thirsty,"#630000" },
+                 {CustomRoles.Rainbow,"#55FFCB" },
                 //SoloKombat
                 {CustomRoles.KB_Normal, "#f55252"},
                 //烫手的山芋
@@ -611,6 +648,8 @@ public class Main : BasePlugin
 
         TOHE.Logger.Msg("========= TOHE loaded! =========", "Plugin Load");
     }
+
+    
 }
 public enum CustomRoles
 {
@@ -671,7 +710,6 @@ public enum CustomRoles
     Vandalism,
     Followers,
     DemolitionManiac,
-    ImpostorSchrodingerCat,
     Spellmaster,
     DestinyChooser,
     Hemophobia,
@@ -683,6 +721,18 @@ public enum CustomRoles
     Defector,
     EvilMini,
     DoubleKiller,
+    Disperser,
+    Kidnapper,
+    Sleeve,
+    MimicKiller,
+    MimicAss,
+    Mimics,
+    Medusa,
+    Cluster,
+    Forger,
+    Blackmailer,
+    EvilSwapper,
+    AbandonedCrew,
     //双阵营
     Mini,
     //船员（原版）
@@ -712,7 +762,7 @@ public enum CustomRoles
     Bodyguard,
     Counterfeiter,
     Grenadier,
-    Medicaler,
+    Medic,
     Divinator,
     Glitch,
     Judge,
@@ -727,7 +777,6 @@ public enum CustomRoles
     TimeMaster,
     SuperPowers,
     ET,
-    CrewSchrodingerCat,
     GlennQuagmire,
     Wronged,
     //Hypnotist,
@@ -759,6 +808,12 @@ public enum CustomRoles
     NiceMini,
     Hunter,
     Merchant,
+    Buried,
+    Chameleon,
+    NiceSwapper,
+    Tom,
+    Copycat,
+    Spiritualists,
     //中立
     Arsonist,
     Jester,
@@ -791,22 +846,15 @@ public enum CustomRoles
     Dissenter,
     StinkyAncestor,
     YinLang,
-    Swapper,
+    Shifter,
     Lawyer,
     Whoops,
     Sidekick,
     SchrodingerCat,
-    GamerSchrodingerCat,
-    BloodSchrodingerCat,
-    JSchrodingerCat,
-    YLSchrodingerCat,
-    PGSchrodingerCat,
-    DHSchrodingerCat,
-    OKSchrodingerCat,
     Crush,
     Injured,
     Slaveowner,
-    QSR,
+    Prosecutors,
     Jealousy,
     SourcePlague,
     PlaguesGod,
@@ -814,6 +862,16 @@ public enum CustomRoles
     Amnesiac,
     Exorcist,
     Cupid,
+    Akujo,
+    Yandere,
+    PlagueDoctor,
+    Henry,
+    Fake,
+    RewardOfficer,
+    Chatty,
+    Loners,
+    MrDesperate,
+    Meditator,
 
     //SoloKombat
     KB_Normal,
@@ -835,6 +893,8 @@ public enum CustomRoles
     Lovers,
     CrushLovers,
     CupidLovers,
+    Honmei,
+    Backup,
     Ntr,
     Madmate,
     Watcher,
@@ -880,6 +940,7 @@ public enum CustomRoles
     Signal,
     VIP,
     Thirsty,
+    Rainbow,
 }
 //胜利设置
 public enum CustomWinner
@@ -896,6 +957,7 @@ public enum CustomWinner
     Lovers = CustomRoles.Lovers,
     CrushLovers = CustomRoles.CrushLovers,
     CupidLovers = CustomRoles.CupidLovers,
+    Akujo = CustomRoles.Akujo,
     Executioner = CustomRoles.Executioner,
     Arsonist = CustomRoles.Arsonist,
     Revolutionist = CustomRoles.Revolutionist,
@@ -928,6 +990,14 @@ public enum CustomWinner
         Exorcist = CustomRoles.Exorcist,
         NiceMini = CustomRoles.NiceMini,
         Injured = CustomRoles.Injured,
+    Yandere = CustomRoles.Yandere,
+    PlagueDoctor = CustomRoles.PlagueDoctor,
+    Henry = CustomRoles.Henry,
+    RewardOfficer = CustomRoles.RewardOfficer,
+    Chatty = CustomRoles.Chatty,
+    Loners = CustomRoles.Loners,
+    MrDesperate = CustomRoles.MrDesperate,
+    Meditator = CustomRoles.Meditator,
 }
 public enum AdditionalWinners
 {
@@ -936,6 +1006,7 @@ public enum AdditionalWinners
     Lovers = CustomRoles.Lovers,
     CrushLovers = CustomRoles.CrushLovers,
     CupidLovers = CustomRoles.CupidLovers,
+    Akujo = CustomRoles.Akujo,
     Opportunist = CustomRoles.Opportunist,
     Executioner = CustomRoles.Executioner,
     FFF = CustomRoles.FFF,
@@ -946,9 +1017,7 @@ public enum AdditionalWinners
     FreeMan = CustomRoles.FreeMan,
     Lawyer = CustomRoles.Lawyer,
     Slaveowner = CustomRoles.Slaveowner, 
-    QSR = CustomRoles.QSR,
-    OKC = CustomRoles.OKSchrodingerCat,
-    DHCat = CustomRoles.DHSchrodingerCat
+    Prosecutors = CustomRoles.Prosecutors,
 }
 public enum SuffixModes
 {

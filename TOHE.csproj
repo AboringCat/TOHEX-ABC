@@ -5,9 +5,12 @@
     <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
 	<GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <Description>Town Of Host Edited Xi</Description>
-    <Authors>喜,N</Authors>
+    <Authors>喜</Authors>
     <langVersion>latest</langVersion>
     <Configurations>Debug;Release;Canary</Configurations>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Canary|AnyCPU'">
+    <Optimize>False</Optimize>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,6 +37,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Samboy063.Cpp2IL.Core" Version="2022.1.0-development.895" />
   </ItemGroup>
 
   <Target Name="Copy" AfterTargets="Build" Condition="'$(AmongUs)' != ''">

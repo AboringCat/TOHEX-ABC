@@ -2,6 +2,25 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using AmongUs.GameOptions;
+using MS.Internal.Xml.XPath;
+using Sentry.Internal.Extensions;
+using System.Linq;
+using System.Text;
+using TOHE.Roles.Crewmate;
+using TOHE.Roles.Impostor;
+using TOHE.Roles.Neutral;
+using static TOHE.Translator;
+using Hazel;
+using InnerNet;
+using System.Threading.Tasks;
+using TOHE.Modules;
+using TOHE.Roles.AddOns.Crewmate;
+using UnityEngine.Profiling;
+using System.Runtime.Intrinsics.X86;
+using static UnityEngine.GraphicsBuffer;
+using UnityEngine.UI;
+using UnityEngine.Networking.Types;
 
 namespace TOHE;
 [HarmonyPatch(typeof(MainMenuManager))]
@@ -17,7 +36,10 @@ public class MainAN
     
         if (!template) return;
         // 示例，创建一个名为Gitee的按钮，点击后打开https://gitee.com/xigua_ya/tohex
-        CreateButton(__instance, template, GameObject.Find("RightPanel")?.transform, new(0.2f, 0.38f), "官方Gitee", () => { Application.OpenURL("https://gitee.com/xigua_ya/tohex"); },Color.yellow);
+        CreateButton(__instance, template, GameObject.Find("RightPanel")?.transform, new(0.2f, 0.2f), "Gitee", () => { Application.OpenURL("https://gitee.com/xigua_ya/tohex"); }, new Color32(255, 151, 0,byte.MaxValue));
+        CreateButton(__instance, template, GameObject.Find("RightPanel")?.transform, new(0.4f, 0.2f), "Github", () => { Application.OpenURL("https://github.com/TOHEX-Official/TownOfHostEdited-Xi"); }, new Color32(0, 0, 0, byte.MaxValue));
+        CreateButton(__instance, template, GameObject.Find("RightPanel")?.transform, new(0.6f, 0.2f), "YQC真帅", () => { Application.OpenURL("https://cn.bing.com/search?q=%E8%84%91%E5%AD%90%E6%9C%89%E7%97%85%E6%80%8E%E4%B9%88%E6%B2%BB&form=ANSPH1&refig=413d1129158241018db0b9600e41403a&pc=U531&sp=1&lq=0&qs=CT&pq=%E8%84%91%E5%AD%90%E6%9C%89%E7%97%85&sk=PRES1&sc=10-4&cvid=413d1129158241018db0b9600e41403a"); }, new Color32(0, 8, 255, byte.MaxValue));
+        CreateButton(__instance, template, GameObject.Find("RightPanel")?.transform, new(0.2f, 0.3f), ":(", () => { Application.OpenURL(""); }, new Color32(0, 255, 247, byte.MaxValue));
     }
     
     private static readonly List<PassiveButton> Buttons = new();
