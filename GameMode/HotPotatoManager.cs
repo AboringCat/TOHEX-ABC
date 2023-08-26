@@ -42,7 +42,7 @@ internal static class HotPotatoManager
         HotQuan = IntegerOptionItem.Create(147_45_47, "HotQuan", new(1, 4, 1), 2, TabGroup.GameSettings, false)
            .SetGameMode(CustomGameMode.HotPotato)
            .SetColor(new Color32(245, 82, 82, byte.MaxValue))
-           .SetValueFormat(OptionFormat.Poeple);
+           .SetValueFormat(OptionFormat.Players);
            
     }
     public static void Init()
@@ -97,6 +97,11 @@ internal static class HotPotatoManager
                         CustomWinnerHolder.ResetAndSetWinner(CustomWinner.CP);
                         CustomWinnerHolder.WinnerIds.Add(player.PlayerId);
                     }
+                    if (RoundTime == 0 && player.Is(CustomRoles.Coldpotato) && player.IsAlive())
+                    {
+                        CustomWinnerHolder.ResetAndSetWinner(CustomWinner.CP);
+                        CustomWinnerHolder.WinnerIds.Add(player.PlayerId);
+                    }
                     if (player.Is(CustomRoles.Coldpotato) && player.IsAlive() && !Main.ForHotCold.Contains(player.PlayerId))
                     {
                         Main.ForHotCold.Add(player.PlayerId);
@@ -105,11 +110,12 @@ internal static class HotPotatoManager
                     //如果热土豆数量超出了则反向变为冷土豆
                     while (IsAliveCold <= HotPotatoMax)
                     {
-                        foreach (var BoomPlayer in Main.AllPlayerControls)
+                        foreach (var BoomPlayer in Main.AllAlivePlayerControls)
                         {
                             if (BoomPlayer.Is(CustomRoles.Hotpotato))
                             {
                                 BoomPlayer.RpcSetCustomRole(CustomRoles.Coldpotato);
+                                BoomPlayer.RpcGuardAndKill(BoomPlayer);
                                 IsAliveCold++;
                                 IsAliveHot--;
                                 continue;
@@ -134,33 +140,30 @@ internal static class HotPotatoManager
                     }
                         
                         //爆炸时间为0时
-                        if (BoomTimes <= 0)
+                    if (BoomTimes <= 0)
+                    {
+                        foreach (var pc in Main.AllAlivePlayerControls)
                         {
-                            foreach (var pc in Main.AllPlayerControls)
+                            if (pc.Is(CustomRoles.Hotpotato) && pc.IsAlive() && Main.ForHotPotato.Contains(pc.PlayerId))
                             {
-                                 if (pc.Is(CustomRoles.Hotpotato) && pc.IsAlive() &&       Main.ForHotPotato.Contains(pc.PlayerId))
-                                {
                                 pc.RpcCheckAndMurder(pc);
                                 IsAliveHot--;
                                 Main.ForHotPotato.Remove(pc.PlayerId);
-                                     }                                
-                            }
+                            }                                
+                        }
                         new LateTask(() =>
                         {
                             var pcList = Main.AllAlivePlayerControls.ToList();
-                            while (ListHotpotato == HotPotatoMax)
+                            while (IsAliveHot < HotPotatoMax)
                             {
-                                if (ListHotpotato >= HotPotatoMax)
-                                {
-                                    break;
-                                }
+                                
                                 if (pcList.Count > 0)
                                 {
                                     var randomIndex = IRandom.Instance.Next(0, pcList.Count);
                                     var randomPlayer = pcList[randomIndex];
                                     randomPlayer.RpcSetCustomRole(CustomRoles.Hotpotato);
+                                    randomPlayer.RpcGuardAndKill(randomPlayer);
                                     IsAliveHot++;
-                                    ListHotpotato++;
                                     IsAliveCold--;
                                     pcList.RemoveAt(randomIndex);
                                     Main.ForHotCold.Remove(randomPlayer.PlayerId);
@@ -169,7 +172,7 @@ internal static class HotPotatoManager
                             }
                         }, 2f);
                         BoomTimes = Boom.GetInt();
-                        }                                           
+                    }                                           
                     
                 }
 
