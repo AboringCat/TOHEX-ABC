@@ -97,7 +97,6 @@ public static class OptionsMenuBehaviourStartPatch
             {
                 if(sml.ifQSM == 0)
                 {
-                    Logger.SendInGame(string.Format(Translator.GetString("QSMInfo"), Application.targetFrameRate));
                     sml.ifQSM = 1;
                 }
                 else

@@ -15,6 +15,7 @@ using static TOHE.ChatCommands;
 using TOHE.Roles.Crewmate;
 using System.Linq;
 using UnityEngine;
+using TOHE.Roles.Impostor;
 
 namespace TOHE;
 
@@ -25,9 +26,13 @@ class UpdateServerPatch
     
     static void Postfix(ref int __result)
     {
-        if (!GameStates.IsOnlineGame || Main.QSM.Value) return;
-        __result = Constants.GetVersion(2222, 0, 0, 0);
-        Logger.Info($"{__result}", "重置服务器版本号为（2222, 0, 0, 0)");
+        if (!GameStates.IsOnlineGame) return;
+        if (!Main.QSM.Value)
+        {
+            __result = Constants.GetVersion(2222, 0, 0, 0);
+            Logger.Info($"{__result}", "重置服务器版本号为（2222, 0, 0, 0)");
+        }
+        else return;
     }
 }
 [HarmonyPatch(typeof(AmongUsClient), nameof(AmongUsClient.OnGameJoined))]
@@ -128,37 +133,43 @@ class OnPlayerLeftPatch
             if (data.Character.Is(CustomRoles.Lovers) && !data.Character.Data.IsDead)
                 foreach (var lovers in Main.LoversPlayers.ToArray())
                 {
-                    Main.isLoversDead = true;
                     Main.LoversPlayers.Remove(lovers);
                     Main.PlayerStates[lovers.PlayerId].RemoveSubRole(CustomRoles.Lovers);
                 }
-            if (data.Character.Is(CustomRoles.Captain) && !data.Character.Data.IsDead)
-                foreach (var pc in PlayerControl.AllPlayerControls.ToArray())
-                {
-                    if (pc.Is(CustomRoles.Solicited))
-                    Main.isseniormanagementDead = true;
-                    Main.PlayerStates[pc.PlayerId].RemoveSubRole(CustomRoles.Captain);
-                    Main.PlayerStates[pc.PlayerId].RemoveSubRole(CustomRoles.Solicited);
-                }
+
             if (data.Character.Is(CustomRoles.CrushLovers) && !data.Character.Data.IsDead)
                 foreach (var lovers in Main.CrushLoversPlayers.ToArray())
                 {
-                Main.isCrushLoversDead = true;
                 Main.CrushLoversPlayers.Remove(lovers);
                 Main.PlayerStates[lovers.PlayerId].RemoveSubRole(CustomRoles.CrushLovers);
                 }
             if (data.Character.Is(CustomRoles.CupidLovers) && !data.Character.Data.IsDead)
                 foreach (var lovers in Main.CupidLoversPlayers.ToArray())
                 {
-                    Main.isCupidLoversDead = true;
                     Main.CupidLoversPlayers.Remove(lovers);
                     Main.PlayerStates[lovers.PlayerId].RemoveSubRole(CustomRoles.CupidLovers);
+                    foreach (var cupid in Main.AllPlayerControls)
+                    {
+                        cupid.RpcSetCustomRole(CustomRoles.Crewmate);
+                    }
                 }
-
+            if (data.Character.Is(CustomRoles.Akujo) && !data.Character.Data.IsDead)
+                foreach (var lovers in Main.AkujoLoversPlayers.ToArray())
+                {
+                    Main.isAkujoLoversDead = true;
+                    Main.AkujoLoversPlayers.Remove(lovers);
+                    Main.PlayerStates[lovers.PlayerId].RemoveSubRole(CustomRoles.Honmei);
+                }
+            if (data.Character.Is(CustomRoles.Honmei) && !data.Character.Data.IsDead)
+                foreach (var lovers in Main.AkujoLoversPlayers.ToArray())
+                {
+                    Main.AkujoLoversPlayers.Remove(lovers);
+                    lovers.RpcSetCustomRole(CustomRoles.Crewmate);
+                }
             if (data.Character.Is(CustomRoles.Jackal))
             {
                 Main.isjackalDead = true;
-                foreach (var pc in PlayerControl.AllPlayerControls)
+                foreach (var pc in PlayerControl.AllPlayerControls.ToArray())
                 {
                     if (pc.Is(CustomRoles.Sidekick))
                         pc.RpcSetCustomRole(CustomRoles.Jackal);
@@ -166,17 +177,44 @@ class OnPlayerLeftPatch
             }
             if (data.Character.Is(CustomRoles.Sheriff))
             {
-                
-                    Main.isSheriffDead = true;
+                Main.isSheriffDead = true;
                 if (Deputy.DeputyCanBeSheriff.GetBool())
                 {
-                    foreach (var pc in PlayerControl.AllPlayerControls)
+                    foreach (var pc in PlayerControl.AllPlayerControls.ToArray())
                     {
                         if (pc.Is(CustomRoles.Deputy))
                             pc.RpcSetCustomRole(CustomRoles.Sheriff);
                     }
                 }
             }
+            if (data.Character.Is(CustomRoles.Captain) && !data.Character.Data.IsDead)
+            {
+                foreach (var pc in PlayerControl.AllPlayerControls.ToArray())
+                {
+                    if (pc.Is(CustomRoles.Solicited))
+                        pc.RpcSetCustomRole(CustomRoles.Crewmate);
+                }
+            }
+            if (data.Character.Is(CustomRoles.MimicKiller) && !data.Character.Data.IsDead && Mimics.DiedToge.GetInt() == 1)
+            {
+                Main.isMKDead = true;
+                foreach (var pc in PlayerControl.AllPlayerControls.ToArray())
+                {
+
+                    if (pc.Is(CustomRoles.MimicAss))
+                        pc.RpcSetCustomRole(CustomRoles.MimicKiller);
+
+                }
+            }
+            if (data.Character.Is(CustomRoles.MimicKiller) && !data.Character.Data.IsDead && Mimics.DiedToge.GetInt() == 2)
+                Main.isMKDead = true;
+                foreach (var pc in PlayerControl.AllPlayerControls.ToArray())
+                {
+
+                    if (pc.Is(CustomRoles.MimicAss))
+                        pc.RpcSetCustomRole(CustomRoles.Impostor);
+
+                }
             if (data.Character.Is(CustomRoles.Executioner) && Executioner.Target.ContainsKey(data.Character.PlayerId))
                 Executioner.ChangeRole(data.Character);
             if (Executioner.Target.ContainsValue(data.Character.PlayerId))
@@ -186,7 +224,13 @@ class OnPlayerLeftPatch
                 Lawyer.ChangeRole(data.Character);
             if (Lawyer.Target.ContainsValue(data.Character.PlayerId))
                 Lawyer.ChangeRoleByTarget(data.Character);
-          
+
+            if (data.Character.Is(CustomRoles.Yandere) && Yandere.Target.ContainsKey(data.Character.PlayerId))
+                Yandere.ChangeRole(data.Character);
+            if (Yandere.Target.ContainsValue(data.Character.PlayerId))
+                Yandere.ChangeRoleByTarget(data.Character); 
+
+
             if (data.Character.Is(CustomRoles.Pelican))
                 Pelican.OnPelicanDied(data.Character.PlayerId);
             if (Main.PlayerStates[data.Character.PlayerId].deathReason == PlayerState.DeathReason.etc) //死因が設定されていなかったら
@@ -255,7 +299,7 @@ class CreatePlayerPatch
 {
     public static void Postfix(AmongUsClient __instance, [HarmonyArgument(0)] ClientData client)
     {
-        if (Options.CurrentGameMode != CustomGameMode.TOEX || Options.AllModMode.GetBool()) if (!AmongUsClient.Instance.AmHost) return;
+        if (!AmongUsClient.Instance.AmHost) return;
 
         Logger.Msg($"创建玩家数据：ID{client.Character.PlayerId}: {client.PlayerName}", "CreatePlayer");
         //string version_text = "";
@@ -263,15 +307,6 @@ class CreatePlayerPatch
         //{
         //    version_text += $"{kvp.Key}:{Main.AllPlayerNames[kvp.Key]}:{kvp.Value.forkId}/{kvp.Value.version}({kvp.Value.tag})\n";
         //}
-        //client in Main.playerVersion.OrderBy(pair => pair.Key);
-        if (Options.CurrentGameMode == CustomGameMode.TOEX)
-        {
-            Logger.SendInGame(string.Format(GetString("TOEXInfo"), Application.targetFrameRate));
-        }
-        if (Options.AllModMode.GetBool())
-        {
-            Logger.SendInGame(string.Format(GetString("AllModModeInfo"), Application.targetFrameRate));
-        }
         //规范昵称
         var name = client.PlayerName;
         if (Options.FormatNameMode.GetInt() == 2 && client.Id != AmongUsClient.Instance.ClientId)

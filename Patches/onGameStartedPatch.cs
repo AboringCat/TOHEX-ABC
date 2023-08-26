@@ -6,9 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TOHE.Modules;
+using TOHE.Modules.ChatManager;
 using TOHE.Roles.AddOns.Crewmate;
 using TOHE.Roles.AddOns.Impostor;
 using TOHE.Roles.Crewmate;
+using TOHE.Roles.Double;
 using TOHE.Roles.Impostor;
 using TOHE.Roles.Neutral;
 using static TOHE.Modules.CustomRoleSelector;
@@ -32,9 +34,10 @@ internal class ChangeRoleSettings
                 Main.NormalOptions.roleOptions.SetRoleRate(RoleTypes.Engineer, 0, 0);
                 Main.NormalOptions.roleOptions.SetRoleRate(RoleTypes.Shapeshifter, 0, 0);
             }
-
+            //初始化值
             Main.PlayerStates = new();
 
+            Main.ChattyMax = new();
             Main.AllPlayerKillCooldown = new();
             Main.AllPlayerSpeed = new();
             Main.AllPlayerLocation = new();
@@ -61,18 +64,23 @@ internal class ChangeRoleSettings
             Main.CleanerBodies = new();
             Main.VultureBodies = new();
             Main.DeputyInProtect = new();
-            Main.QSRInProtect = new();
+            Main.ProsecutorsInProtect = new();
             Main.TimeStopsstop = new();
             Main.TimeMasterbacktrack = new();
+            Main.Spiritualistsbacktrack = new();
             Main.SignalLocation = new();
             Main.DemolitionManiacKill = new();
             Main.CrushMax = new();
+            Main.CupidShieldList = new();
             Main.HunterMax = new();
+            Main.ForCluster = new();
             Main.SlaveownerMax = new();
             Main.ForSlaveowner = new();
             Main.SpellmasterMax = new();
             Main.LastEnteredVent = new();
-            Main.LastEnteredVentLocation = new();
+            Main.IsShapeShifted = new();
+            Main.ForMimicKiller = new();
+    Main.LastEnteredVentLocation = new();
             Main.EscapeeLocation = new();
             Main.ForSpellmaster = new();
             Main.SoulSeekerCanKill = new();
@@ -96,10 +104,13 @@ internal class ChangeRoleSettings
             Main.ManipulatorCrewmate = new();
             Main.ManipulatorNeutral = new();
             Main.GuideMax = new();
+            Main.ForYandere = new();
+            Main.NeedKillYandere = new();
 
-    Main.AfterMeetingDeathPlayers = new();
+            Main.AfterMeetingDeathPlayers = new();
             Main.ResetCamPlayerList = new();
             Main.clientIdList = new();
+            Main.ForNiceTracker = new();
 
             Main.CapitalismAddTask = new();
             Main.MerchantTaskMax = 114514;
@@ -137,12 +148,20 @@ internal class ChangeRoleSettings
             Main.ForGrenadiers = new();
             Main.isjackalDead = false;
             Main.DoubleKillerMax = new();
+            Main.FakeMath = new();
+            Main.NotKIller = new();
+            Main.FakeMax = new();
 
 
-            Main.isSheriffDead = false;
+    Main.isSheriffDead = false;
             Main.isCrushLoversDead = false;
             Main.isCupidLoversDead = false;
+            Main.isAkujoLoversDead = false;
             Main.isseniormanagementDead = false;
+            Main.ForSpiritualists = new();
+            Main.isMKDead = false;
+            Main.isHunterDead = false;
+            Main.TomKill = new();
             ReportDeadBodyPatch.CanReport = new();
             Main.KilledDiseased = new();
             Main.ForJealousy = new();
@@ -217,7 +236,11 @@ internal class ChangeRoleSettings
                 Camouflage.PlayerSkins[pc.PlayerId] = new GameData.PlayerOutfit().Set(outfit.PlayerName, outfit.ColorId, outfit.HatId, outfit.SkinId, outfit.VisorId, outfit.PetId);
                 Main.clientIdList.Add(pc.GetClientId());
             }
+            Main.DyingTurns = 0;
             Main.VisibleTasksCount = true;
+            ChatManager.cancel = false;
+            Main.NiceSwapSend = false;
+            Main.EvilSwapSend = false;
             if (__instance.AmHost)
             {
                 RPC.SyncCustomSettingsRPC();
@@ -234,6 +257,7 @@ internal class ChangeRoleSettings
             SabotageMaster.Init();
             Executioner.Init();
             Jackal.Init();
+            SchrodingerCat.Init();
             Sheriff.Init();
             SwordsMan.Init();
             EvilTracker.Init();
@@ -244,14 +268,14 @@ internal class ChangeRoleSettings
             TimeManager.Init();
             LastImpostor.Init();
             TargetArrow.Init();
-            NiceMini.Init();
+            Mini.Init();
             LocateArrow.Init();
             DoubleTrigger.Init();
             Workhorse.Init();
             Pelican.Init();
             Counterfeiter.Init();
             Gangster.Init();
-            Medicaler.Init();
+            Medic.Init();
             Gamer.Init();
             BallLightning.Init();
             DarkHide.Init();
@@ -280,7 +304,7 @@ internal class ChangeRoleSettings
             Vandalism.Init();
             Captain.Init();
             Lawyer.Init();
-            QSR.Init();
+            Prosecutors.Init();
             BSR.Init();
             ElectOfficials.Init();
             ChiefOfPolice.Init();
@@ -289,8 +313,23 @@ internal class ChangeRoleSettings
             DoubleKiller.Init();
             EvilGambler.Init();
             Merchant.Init();
-
-            SoloKombatManager.Init();
+            NiceTracker.Init();
+            Yandere.Init();
+            Buried.Init();
+            PlagueDoctor.Init();
+            Henry.Init();
+            Chameleon.Init();
+          //  Kidnapper.Init();
+            Mimics.Init();
+            NiceSwapper.Init();
+            EvilSwapper.Init();
+            Blackmailer.Init();
+            RewardOfficer.Init();
+            Copycat.Init();
+            Loners.Init();
+            MrDesperate.Init();
+            Meditator.Init();
+                SoloKombatManager.Init();
             HotPotatoManager.Init();
             CustomWinnerHolder.Reset();
             AntiBlackout.Reset();
@@ -473,10 +512,6 @@ internal class SelectRolesPatch
 
             foreach (var pc in Main.AllPlayerControls)
             {
-                if (pc.Is(CustomRoles.Mini) && NiceMini.IsEvilMini)
-                   pc.RpcSetCustomRole(CustomRoles.EvilMini);
-                if (pc.Is(CustomRoles.Mini) && !NiceMini.IsEvilMini)
-                    pc.RpcSetCustomRole(CustomRoles.NiceMini);
                 if (pc.Data.Role.Role == RoleTypes.Shapeshifter) Main.CheckShapeshift.Add(pc.PlayerId, false);
                 switch (pc.GetCustomRole())
                 {
@@ -567,8 +602,11 @@ internal class SelectRolesPatch
                     case CustomRoles.Gangster:
                         Gangster.Add(pc.PlayerId);
                         break;
-                    case CustomRoles.Medicaler:
-                        Medicaler.Add(pc.PlayerId);
+                    case CustomRoles.Medic:
+                        Medic.Add(pc.PlayerId);
+                        break;
+                    case CustomRoles.SchrodingerCat:
+                        SchrodingerCat.Add(pc.PlayerId);
                         break;
                     case CustomRoles.Divinator:
                         Divinator.Add(pc.PlayerId);
@@ -673,8 +711,8 @@ internal class SelectRolesPatch
                     case CustomRoles.Deputy:
                         Deputy.Add(pc.PlayerId);
                         break;
-                    case CustomRoles.QSR:
-                        QSR.Add(pc.PlayerId);
+                    case CustomRoles.Prosecutors:
+                        Prosecutors.Add(pc.PlayerId);
                         break;
                     case CustomRoles.DemonHunterm:
                         DemonHunterm.Add(pc.PlayerId);
@@ -694,8 +732,15 @@ internal class SelectRolesPatch
                     case CustomRoles.Crush:
                         Main.CrushMax[pc.PlayerId] = 0;
                         break;
+                    case CustomRoles.PlagueDoctor:
+                        PlagueDoctor.Add(pc.PlayerId);
+                        PlagueDoctor.CanInfectInt[pc.PlayerId] = 0;
+                        break;
                     case CustomRoles.Cupid:
                         Main.CupidMax[pc.PlayerId] = 0;
+                        break;
+                    case CustomRoles.Akujo:
+                        Main.AkujoMax[pc.PlayerId] = 0;
                         break;
                     case CustomRoles.Slaveowner:
                         Main.SlaveownerMax[pc.PlayerId] = 0;
@@ -771,6 +816,60 @@ internal class SelectRolesPatch
                         Merchant.Add(pc.PlayerId);
                         Main.MerchantMax[pc.PlayerId] = 0;
                         break;
+                    case CustomRoles.NiceTracker:
+                        NiceTracker.Add(pc.PlayerId);
+                        break;
+                    case CustomRoles.Yandere:
+                        Yandere.Add(pc.PlayerId);
+                        break;
+                    case CustomRoles.Buried:
+                        Buried.Add(pc.PlayerId);
+                        break;
+                    case CustomRoles.Henry:
+                        Henry.Add(pc.PlayerId);
+                        break;
+                    case CustomRoles.Chameleon:
+                        Chameleon.Add(pc.PlayerId);
+                        break;
+             //       case CustomRoles.Kidnapper:
+             //           Kidnapper.Add(pc.PlayerId);
+              //          break;
+                    case CustomRoles.MimicKiller:
+                        Mimics.Add(pc.PlayerId);
+                        break;
+                    case CustomRoles.Fake:
+                        Main.FakeMax[pc.PlayerId] = 0;
+                        break;
+                    case CustomRoles.NiceSwapper:
+                        NiceSwapper.Add(pc.PlayerId);
+                        break;
+                    case CustomRoles.EvilSwapper:
+                        EvilSwapper.Add(pc.PlayerId);
+                        break;
+                    case CustomRoles.Blackmailer:
+                        Blackmailer.Add(pc.PlayerId);
+                        break;
+                    case CustomRoles.Tom:
+                        Main.TomKill[pc.PlayerId] = 0;
+                        break;
+                    case CustomRoles.RewardOfficer:
+                        RewardOfficer.Add(pc.PlayerId);
+                        break;
+                    case CustomRoles.Copycat:
+                        Copycat.Add(pc.PlayerId);
+                        break;
+                    case CustomRoles.Chatty:
+                        Main.ChattyMax[pc.PlayerId] = 0;
+                        break;
+                    case CustomRoles.Loners:
+                        Loners.Add(pc.PlayerId);
+                        break;
+                    case CustomRoles.MrDesperate:
+                        MrDesperate.Add(pc.PlayerId);
+                        break;
+                    case CustomRoles.Meditator:
+                        Meditator.Add(pc.PlayerId);
+                        break;
                 }
                 foreach (var subRole in pc.GetCustomSubRoles())
                 {
@@ -832,7 +931,7 @@ internal class SelectRolesPatch
         catch (Exception ex)
         {
             Utils.ErrorEnd("Select Role Postfix");
-            Logger.Fatal(ex.ToString(), "Select Role Prefix");
+            Logger.Fatal(ex.ToString(), "Select Role Postfix");
         }
     }
     private static void AssignDesyncRole(CustomRoles role, PlayerControl player, Dictionary<byte, CustomRpcSender> senders, Dictionary<(byte, byte), RoleTypes> rolesMap, RoleTypes BaseRole, RoleTypes hostBaseRole = RoleTypes.Crewmate)
@@ -909,6 +1008,11 @@ internal class SelectRolesPatch
             Main.CupidLoversPlayers.Clear();
             Main.isCupidLoversDead = false;
         }
+        if (CustomRoles.Akujo.IsEnable())
+        {
+            Main.AkujoLoversPlayers.Clear();
+            Main.isAkujoLoversDead = false;
+        }
     }
 
     private static void AssignLoversRoles(int RawCount = -1)
@@ -916,7 +1020,7 @@ internal class SelectRolesPatch
         var allPlayers = new List<PlayerControl>();
         foreach (var pc in Main.AllPlayerControls)
         {
-            if (pc.Is(CustomRoles.GM) || (pc.HasSubRole() && Options.LimitAddonsNum.GetBool()) && pc.GetCustomSubRoles().Count >= Options.AddonsNumMax.GetInt() || pc.Is(CustomRoles.Needy) || pc.Is(CustomRoles.Ntr) || pc.Is(CustomRoles.God) || pc.Is(CustomRoles.FFF) || pc.Is(CustomRoles.Captain) || pc.Is(CustomRoles.Believer) || pc.Is(CustomRoles.Crush) || pc.Is(CustomRoles.Cupid)) continue;
+            if (pc.Is(CustomRoles.GM) || (pc.HasSubRole() && Options.LimitAddonsNum.GetBool()) && pc.GetCustomSubRoles().Count >= Options.AddonsNumMax.GetInt() || pc.Is(CustomRoles.Needy) || pc.Is(CustomRoles.Ntr) || pc.Is(CustomRoles.God) || pc.Is(CustomRoles.FFF) || pc.Is(CustomRoles.Captain) || pc.Is(CustomRoles.Believer) || pc.Is(CustomRoles.Crush) || pc.Is(CustomRoles.Cupid) || pc.Is(CustomRoles.Akujo)) continue;
             allPlayers.Add(pc);
         }
         var role = CustomRoles.Lovers;

@@ -1,4 +1,5 @@
 using HarmonyLib;
+using System.Drawing;
 using System.Text;
 using TMPro;
 using UnityEngine;
@@ -20,36 +21,48 @@ internal class PingTrackerUpdatePatch
         sb.Append(Main.credentialsText);
 
         var ping = AmongUsClient.Instance.Ping;
-        string color = "#ff4500";
+        string color = "#90EE90";
         string ping1 = "0";
-        if (ping < 30)
+        if (ping < 175)
         {
-            color = "#6A5ACD";
-            ping1 = "30";
+            color = "#90EE90";
+            ping1 = "1";
         }
-        else if (ping < 100)
+        else if (ping < 225)
         {
-            color = "#7B68EE";
-            ping1 = "100";
+            color = "#A8B644";
+            ping1 = "2";
         }
-        else if (ping < 200)
+        else if (ping < 500)
         {
-            color = "#9370DB";
-            ping1 = "200";
+            color = "#CD7B29";
+            ping1 = "3";
         }
-        else if (ping < 400)
+        else if (ping < 650)
         {
-            color = "#8A2BE2";
-            ping1 = "400";
+            color = "#BA0505";
+            ping1 = "4";
 
         }
-        sb.Append($"\r\n").Append($"<color={color}>{GetString("Ping")}: {ping} </color>\n{GetString($"Ping{ping1}")}");
+        else if (ping < 800)
+        {
+            color = "#7E0404";
+            ping1 = "5";
 
-        if (Options.NoGameEnd.GetBool()) sb.Append($"\r\n").Append(Utils.ColorString(Color.red, GetString("NoGameEnd")));
-        if (Options.AllowConsole.GetBool()) sb.Append($"\r\n").Append(Utils.ColorString(Color.red, GetString("AllowConsole")));
-        if (!GameStates.IsModHost) sb.Append($"\r\n").Append(Utils.ColorString(Color.red, GetString("Warning.NoModHost")));
-        if (DebugModeManager.IsDebugMode) sb.Append("\r\n").Append(Utils.ColorString(Color.green, GetString("DebugMode")));
-        if (Options.LowLoadMode.GetBool()) sb.Append("\r\n").Append(Utils.ColorString(Color.green, GetString("LowLoadMode")));
+        }
+        else if (ping < 9800)
+        {
+            color = "#520606";
+            ping1 = "6";
+
+        }
+        sb.Append($"\r\n").Append($"<color={color}>{GetString($"Ping{ping1}")}</color>\n<color=#9F90FF>{GetString("Ping")}:</color><color={color}> {ping}</color><size=2.3><color=#C3B9FF>{GetString("ms")}</color></size>");
+
+        if (Options.NoGameEnd.GetBool()) sb.Append($"\r\n").Append(Utils.ColorString(UnityEngine.Color.red, $"<size=2.5>{GetString("NoGameEnd")}</size>"));
+        if (Options.AllowConsole.GetBool()) sb.Append($"\r\n").Append(Utils.ColorString(UnityEngine.Color.red, $"<size=2.5>{GetString("AllowConsole")}</size>"));
+        if (!GameStates.IsModHost) sb.Append($"\r\n").Append(Utils.ColorString(UnityEngine.Color.red, $"<size=2.5>{GetString("Warning.NoModHost")}</size>"));
+        if (DebugModeManager.IsDebugMode) sb.Append("\r\n").Append(Utils.ColorString(UnityEngine.Color.green, $"<size=2.5>{GetString("DebugMode")}</size>"));
+        if (Options.LowLoadMode.GetBool()) sb.Append("\r\n").Append(Utils.ColorString(UnityEngine.Color.green, $"<size=2.5>{GetString("LowLoadMode")}</size>"));
 
         var offset_x = 1.2f; //右端からのオフセット
         if (HudManager.InstanceExists && HudManager._instance.Chat.chatButton.active) offset_x += 0.8f; //チャットボタンがある場合の追加オフセット
@@ -69,11 +82,14 @@ internal class VersionShowerStartPatch
     private static void Postfix(VersionShower __instance)
     {
 
-        Main.credentialsText = $"\r\n<color={Main.ModColor}>{Main.ModName}</color> v{Main.PluginVersion}";
+        Main.credentialsText = $"\r\n<color={Main.ModColor}>{Main.ModName}</color> v{Main.PluginDisplayVersion}";
         if (Main.IsAprilFools) Main.credentialsText = $"\r\n<color=#00bfff>Town Of Host</color> v11.45.14";
-        //IsTOHEjnr
-        //if (Main.IsTOHEjnr) Main.credentialsText = $"\r\n<color=#00bfff>TOHE</color> v2.3.6";
+        else if (Main.IsTOHEInitialRelease) Main.credentialsText = $"\r\n<color=#ffc0cb>Town Of Host Edited</color> v4.0.23?";
+        else if (Main.IsInitialRelease) Main.credentialsText += $"\r\n<color=#ffc0cb>Town Of Host Edited</color> v2.3.6?";
 
+#if RELEASE
+        Main.credentialsText += $"\r\n<size=2.3><color=#ffc0cb>TOHE</color> <color=#8035DF>By <color=#ffc0cb>KARPED1EM</color></size>\r\n<size=2.3><color=#fffcbe>TOHEX</color> <color=#35dfca>By <color=#fffcbe>{Translator.GetString("xiawa")}</color></size>";
+#endif
 #if CANARY
         Main.credentialsText += $"\r\n<color=#fffe1e>Canary({ThisAssembly.Git.Commit})</color>";
 #endif
@@ -102,7 +118,7 @@ internal class VersionShowerStartPatch
         {
             SpecialEventText = Object.Instantiate(__instance.text);
             SpecialEventText.text = "";
-            SpecialEventText.color = Color.white;
+            SpecialEventText.color = UnityEngine.Color.white;
             SpecialEventText.fontSize += 2.5f;
             SpecialEventText.alignment = TextAlignmentOptions.Top;
             SpecialEventText.transform.position = new Vector3(0, 0.5f, 0);
@@ -110,15 +126,21 @@ internal class VersionShowerStartPatch
         SpecialEventText.enabled = TitleLogoPatch.amongUsLogo != null;
         if (Main.IsInitialRelease)
         {
-            SpecialEventText.text = $"Happy Birthday to {Main.ModName}!";
+            SpecialEventText.text = $"Happy Birthday to {Main.ModName}!{GetString("ThanksKap")}";
             ColorUtility.TryParseHtmlString(Main.ModColor, out var col);
+            SpecialEventText.color = col;
+        }
+        else if (Main.IsTOHEInitialRelease)
+        {
+            SpecialEventText.text = $"Happy Birthday to Town Of Host Edited!\n Wish Karpe Can Happy Every Day";
+            ColorUtility.TryParseHtmlString("#ffc0cb", out var col);
             SpecialEventText.color = col;
         }
         else if (!Main.IsAprilFools)
         {
             SpecialEventText.text = $"{Main.MainMenuText}";
             SpecialEventText.fontSize = 0.9f;
-            SpecialEventText.color = Color.white;
+            SpecialEventText.color = UnityEngine.Color.white;
             SpecialEventText.alignment = TextAlignmentOptions.TopRight;
             SpecialEventText.transform.position = new Vector3(4.6f, 2.725f, 0);
         }
@@ -133,7 +155,7 @@ internal class VersionShowerStartPatch
                 {
                     VisitText = Object.Instantiate(__instance.text);
                     VisitText.text = string.Format(GetString("TOHEVisitorCount"), Main.ModColor, ModUpdater.visit);
-                    VisitText.color = Color.white;
+                    VisitText.color = UnityEngine.Color.white;
                     VisitText.fontSize = 1.2f;
                     //VisitText.alignment = TMPro.TextAlignmentOptions.Top;
                     OVersionShower.transform.localScale = new Vector3(0.6f, 0.6f, 1f);

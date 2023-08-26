@@ -1,5 +1,6 @@
 using AmongUs.GameOptions;
 using HarmonyLib;
+using Lotus.Roles.Internals;
 using MS.Internal.Xml.XPath;
 using Sentry.Internal.Extensions;
 using System;
@@ -8,9 +9,11 @@ using System.Linq;
 using System.Text;
 using TOHE.Modules;
 using TOHE.Roles.Crewmate;
+using TOHE.Roles.Double;
 using TOHE.Roles.Impostor;
 using TOHE.Roles.Neutral;
 using UnityEngine;
+using static Il2CppSystem.Linq.Expressions.Interpreter.CastInstruction.CastInstructionNoT;
 using static TOHE.ChatCommands;
 using static TOHE.Translator;
 using static UnityEngine.GraphicsBuffer;
@@ -166,15 +169,179 @@ class CheckForEndVotingPatch
                 //隐藏抹除者的票
                 if (CheckRole(ps.TargetPlayerId, CustomRoles.Eraser) && Eraser.HideVote.GetBool()) continue;
 
+                
+
                 //主动叛变模式下自票无效
                 if (ps.TargetPlayerId == ps.VotedFor && Options.MadmateSpawnMode.GetInt() == 2) continue;
-
+          
                 statesList.Add(new MeetingHud.VoterState()
                 {
                     VoterId = ps.TargetPlayerId,
                     VotedForId = ps.VotedFor
                 });
+                /*#region 正义换票判断
+                if (NiceSwapper.Vote.Count > 0 && NiceSwapper.VoteTwo.Count > 0)
+                {
+                    List<byte> NiceList1 = new();
+                    List<byte> BeSwapped = new();
+                    var meetingHud = MeetingHud.Instance;
+                    PlayerControl swap1 = null;
+                    foreach (var playerId in NiceSwapper.Vote)
+                    {
+                        swap1 = Utils.GetPlayerById(playerId);
+                    }
+                    PlayerControl swap2 = null;
+                    foreach (var playerId in NiceSwapper.VoteTwo)
+                    {
+                        swap2 = Utils.GetPlayerById(playerId);
+                    }
+                    if (swap1 != null && swap2 != null)
+                    {
+                        
+                        if (ps.VotedFor == swap1.PlayerId && !BeSwapped.Contains(ps.TargetPlayerId) && voter.IsAlive())
+                        {
+                            ps.VotedFor = swap2.PlayerId;
+                            voteLog.Info($"{voter.GetNameWithRole()}投给{swap1.GetNameWithRole()}的票选交换给了{swap2.GetNameWithRole()}");
+                            NiceList1.Add(ps.TargetPlayerId);
+                            BeSwapped.Add(ps.TargetPlayerId);
+                        }
+                        else if (ps.VotedFor == swap2.PlayerId && !NiceList1.Contains(ps.TargetPlayerId) &&!BeSwapped.Contains(ps.TargetPlayerId) && voter.IsAlive())
+                        {
+                            ps.VotedFor = swap1.PlayerId;
+                            BeSwapped.Add(ps.TargetPlayerId);
+                            voteLog.Info($"{voter.GetNameWithRole()}投给{swap2.GetNameWithRole()}的票选交换给了{swap1.GetNameWithRole()}");
+                        }
+                        if (Main.NiceSwapSend == false)
+                        {
+                            Utils.SendMessage(string.Format(GetString("SwapVote"), swap1.GetRealName(), swap2.GetRealName()), 255, Utils.ColorString(Utils.GetRoleColor(CustomRoles.NiceSwapper), GetString("SwapTitle")));
+                            Main.NiceSwapSend = true;
+                            NiceList1.Clear();
+                        }
+                    }
+                }
+        
+                #endregion*/
+                #region 换票
+                #region 正义换票判断
+                if (NiceSwapper.Vote.Count > 0 && NiceSwapper.VoteTwo.Count > 0)
+                {
+                    List<byte> NiceList1 = new();
+                    List<byte> NiceList2 = new();
+                    PlayerVoteArea pva = new();
+                    var meetingHud = MeetingHud.Instance;
+                        PlayerControl swap1 = null;
+                        foreach (var playerId in NiceSwapper.Vote)
+                        {
+                            var player = Utils.GetPlayerById(playerId);
+                            if (player != null)
+                            {
+                                swap1 = player;
+                                break;
+                            }
+                        }
+                        PlayerControl swap2 = null;
+                        foreach (var playerId in NiceSwapper.VoteTwo)
+                        {
+                            var player = Utils.GetPlayerById(playerId);
+                            if (player != null)
+                            {
+                                swap2 = player;
+                                break;
+                            }
+                        }
+                    if (swap1 != null && swap2 != null)
+                    {
+                        foreach (var playerVoteArea in meetingHud.playerStates)
+                        {
+                            if (playerVoteArea.VotedFor != swap1.PlayerId) continue;
+                            var voteAreaPlayer = Utils.GetPlayerById(playerVoteArea.TargetPlayerId);
+                            playerVoteArea.UnsetVote();
+                            meetingHud.CastVote(voteAreaPlayer.PlayerId, swap2.PlayerId);
+                            playerVoteArea.VotedFor = swap2.PlayerId;
+                            NiceList1.Add(voteAreaPlayer.PlayerId);
+                        }
+                        foreach (var playerVoteArea in meetingHud.playerStates)
+                        {
+                            if (playerVoteArea.VotedFor != swap2.PlayerId) continue;
+                            var voteAreaPlayer = Utils.GetPlayerById(playerVoteArea.TargetPlayerId);
+                            if (NiceList1.Contains(voteAreaPlayer.PlayerId)) continue;
+                            playerVoteArea.UnsetVote();
+                            playerVoteArea.VotedFor = swap1.PlayerId;
+                            meetingHud.CastVote(voteAreaPlayer.PlayerId, swap1.PlayerId);
+                        }
+                        if (Main.NiceSwapSend == false)
+                        {
+                            Utils.SendMessage(string.Format(GetString("SwapVote"), swap1.GetRealName(), swap2.GetRealName()), 255, Utils.ColorString(Utils.GetRoleColor(CustomRoles.NiceSwapper), GetString("SwapTitle")));
+                            Main.NiceSwapSend = true;
+                            NiceList1.Clear();
+                        }
+                        NiceSwapper.Vote.Clear();
+                        NiceSwapper.VoteTwo.Clear();
+                    }
+                }
 
+                #endregion
+                #region 邪恶换票判断
+                if (EvilSwapper.Vote.Count > 0 && EvilSwapper.VoteTwo.Count > 0)
+                {
+                    List<byte> NiceList1 = new();
+                    List<byte> NiceList2 = new();
+                    PlayerVoteArea pva = new();
+                    var meetingHud = MeetingHud.Instance;
+                    PlayerControl swap1 = null;
+                    foreach (var playerId in EvilSwapper.Vote)
+                    {
+                        var player = Utils.GetPlayerById(playerId);
+                        if (player != null)
+                        {
+                            swap1 = player;
+                            break;
+                        }
+                    }
+                    PlayerControl swap2 = null;
+                    foreach (var playerId in EvilSwapper.VoteTwo)
+                    {
+                        var player = Utils.GetPlayerById(playerId);
+                        if (player != null)
+                        {
+                            swap2 = player;
+                            break;
+                        }
+                    }
+                    if (swap1 != null && swap2 != null)
+                    {
+                        foreach (var playerVoteArea in meetingHud.playerStates)
+                        {
+                            if (playerVoteArea.VotedFor != swap1.PlayerId) continue;
+                            var voteAreaPlayer = Utils.GetPlayerById(playerVoteArea.TargetPlayerId);
+                            playerVoteArea.UnsetVote();
+                            meetingHud.CastVote(voteAreaPlayer.PlayerId, swap2.PlayerId);
+                            playerVoteArea.VotedFor = swap2.PlayerId;
+                            NiceList1.Add(voteAreaPlayer.PlayerId);
+                        }
+                        foreach (var playerVoteArea in meetingHud.playerStates)
+                        {
+                            if (playerVoteArea.VotedFor != swap2.PlayerId) continue;
+                            var voteAreaPlayer = Utils.GetPlayerById(playerVoteArea.TargetPlayerId);
+                            if (NiceList1.Contains(voteAreaPlayer.PlayerId)) continue;
+                            playerVoteArea.UnsetVote();
+                            meetingHud.CastVote(voteAreaPlayer.PlayerId, swap1.PlayerId);
+                            playerVoteArea.VotedFor = swap1.PlayerId;
+                        }
+               
+                        if (Main.EvilSwapSend == false)
+                        {
+                            Utils.SendMessage(string.Format(GetString("SwapVote"), swap1.GetRealName(), swap2.GetRealName()), 255, Utils.ColorString(Utils.GetRoleColor(CustomRoles.NiceSwapper), GetString("SwapTitle")));
+                            Main.EvilSwapSend = true;
+                            NiceList1.Clear();
+                        }
+                        EvilSwapper.Vote.Clear();
+                        EvilSwapper.VoteTwo.Clear();
+                    }
+                   
+                }
+                #endregion*/
+                #endregion
                 if (CheckRole(ps.TargetPlayerId, CustomRoles.Mayor) && !Options.MayorHideVote.GetBool()) //Mayorの投票数
                 {
                     for (var i2 = 0; i2 < Options.MayorAdditionalVote.GetFloat(); i2++)
@@ -188,8 +355,8 @@ class CheckForEndVotingPatch
                 }
             }
             states = statesList.ToArray();
-
             var VotingData = __instance.CustomCalculateVotes();
+
             byte exileId = byte.MaxValue;
             int max = 0;
             voteLog.Info("===决定驱逐玩家处理开始===");
@@ -238,8 +405,9 @@ class CheckForEndVotingPatch
                     braked = true;
                 }
             }
-
+            
             Collector.CollectAmount(VotingData, __instance);
+            
 
             if (Options.VoteMode.GetBool() && Options.WhenTie.GetBool() && tie)
             {
@@ -471,62 +639,7 @@ class CheckForEndVotingPatch
     public static void CheckForDeathOnExile(PlayerState.DeathReason deathReason, params byte[] playerIds)
     {
         Witch.OnCheckForEndVoting(deathReason, playerIds);
-        foreach (var playerId in playerIds)
-        {
-            //Loversの後追い
-            if (CustomRoles.Lovers.IsEnable() && !Main.isLoversDead && Main.LoversPlayers.Find(lp => lp.PlayerId == playerId) != null)
-                FixedUpdatePatch.LoversSuicide(playerId, true);
-            //道連れチェック
-            RevengeOnExile(playerId, deathReason);
-        }
-        foreach (var playerId in playerIds)
-        {
-            //Loversの後追い
-            if (CustomRoles.Crush.IsEnable() && !Main.isCrushLoversDead && Main.CrushLoversPlayers.Find(lp => lp.PlayerId == playerId) != null)
-                FixedUpdatePatch.CrushLoversSuicide(playerId, true);
-            //道連れチェック
-            RevengeOnExile(playerId, deathReason);
-        }
-        foreach (var playerId in playerIds)
-        {
-            //Loversの後追い
-            if (CustomRoles.Cupid.IsEnable() && !Main.isCupidLoversDead && Main.CupidLoversPlayers.Find(lp => lp.PlayerId == playerId) != null)
-                FixedUpdatePatch.CupidLoversSuicide(playerId, true);
-            //道連れチェック
-            RevengeOnExile(playerId, deathReason);
-        }
-        foreach (var playerId in playerIds)
-        {
-            //Loversの後追い
-            if (CustomRoles.Captain.IsEnable() && !Main.isseniormanagementDead)
-                FixedUpdatePatch.CaptainSuicide(playerId, true);
-            //道連れチェック
-            RevengeOnExile(playerId, deathReason);
-        }
-        foreach (var playerId in playerIds)
-        {
-            //Loversの後追い
-            if (CustomRoles.Jackal.IsEnable() && !Main.isjackalDead)
-                FixedUpdatePatch.JackalSuicide(playerId, true);
-            //道連れチェック
-            RevengeOnExile(playerId, deathReason);
-        }
-        foreach (var playerId in playerIds)
-        {
-            //Loversの後追い
-            if (CustomRoles.Sheriff.IsEnable() && !Main.isSheriffDead)
-                //FixedUpdatePatch.SheriffSuicide(playerId, true);
-            //道連れチェック
-            RevengeOnExile(playerId, deathReason);
-        }
-        foreach (var playerId in playerIds)
-        {
-            //Loversの後追い
-            if (CustomRoles.Hunter.IsEnable() && !Main.isseniormanagementDead)
-                FixedUpdatePatch.HunterSuicide(playerId, true);
-            //道連れチェック
-            RevengeOnExile(playerId, deathReason);
-        }
+        
     }
     private static void RevengeOnExile(byte playerId, PlayerState.DeathReason deathReason)
     {
@@ -614,7 +727,7 @@ static class ExtendedMeetingHud
                 //自由人无法投票
                 if (CheckForEndVotingPatch.CheckRole(ps.TargetPlayerId, CustomRoles.FreeMan)
                     && ps.TargetPlayerId != ps.VotedFor
-                    ) VoteNum += 0;
+                    ) VoteNum = 0;
                 //窃票者附加票数
                 if (CheckForEndVotingPatch.CheckRole(ps.TargetPlayerId, CustomRoles.TicketsStealer))
                     VoteNum += (int)(Main.AllPlayerControls.Count(x => x.GetRealKiller()?.PlayerId == ps.TargetPlayerId) * Options.TicketsPerKill.GetFloat());
@@ -740,6 +853,12 @@ class MeetingHudStartPatch
                 if (!Options.NeutralKnowCyberStarDead.GetBool() && pc.GetCustomRole().IsNeutral()) continue;
                 AddMsg(string.Format(GetString("CyberStarDead"), Main.AllPlayerNames[csId]), pc.PlayerId, Utils.ColorString(Utils.GetRoleColor(CustomRoles.CyberStar), GetString("CyberStarNewsTitle")));
             }
+
+            foreach (var player in Blackmailer.ForBlackmailer)
+            {
+                
+                 AddMsg(string.Format(GetString("BlackmailerDead"), Main.AllPlayerNames[player]), pc.PlayerId, Utils.ColorString(Utils.GetRoleColor(CustomRoles.Blackmailer), GetString("BlackmaileKillTitle")));
+            }
             //舰长死亡消息提示
             foreach (var csId in Main.CaptainDead)
             {
@@ -814,13 +933,23 @@ class MeetingHudStartPatch
                     }
                 }               
             }
+            if (Copycat.CopycatFor.Contains(player.PlayerId))
+            {
+                player.RpcSetCustomRole(CustomRoles.Copycat);
+                Copycat.CopycatFor.Remove(player.PlayerId);
+            }
             //如果是护士正在救治病人
             if (Main.NnurseHelep.Contains(player.PlayerId) && player.IsAlive())
             {
                 Main.NnurseHelep.Remove(player.PlayerId);
                 player.RpcMurderPlayerV3(player);
             }
-                
+            //化形
+            if (player.Is(CustomRoles.MimicKiller))
+            {
+               player.RpcRevertShapeshift(true);
+            }
+
             //操控者
             if (player.Is(CustomRoles.Manipulator))
             {
@@ -910,6 +1039,8 @@ class MeetingHudStartPatch
                 (pc.Is(CustomRoles.CrushLovers) && PlayerControl.LocalPlayer.Is(CustomRoles.CrushLovers) && Options.CrushLoverKnowRoles.GetBool()) ||
                 (pc.Is(CustomRoles.CupidLovers) && PlayerControl.LocalPlayer.Is(CustomRoles.CupidLovers) && Options.CupidLoverKnowRoles.GetBool()) ||
                 (pc.Is(CustomRoles.CupidLovers) && PlayerControl.LocalPlayer.Is(CustomRoles.Cupid) && Options.CanKnowCupid.GetBool()) ||
+                (pc.Is(CustomRoles.Akujo) && (PlayerControl.LocalPlayer.Is(CustomRoles.Honmei) || PlayerControl.LocalPlayer.Is(CustomRoles.Backup)) && Options.AkujoCanKnowRole.GetBool()) ||
+                ((pc.Is(CustomRoles.Honmei) || pc.Is(CustomRoles.Backup))&& PlayerControl.LocalPlayer.Is(CustomRoles.Akujo) ) ||
                 (pc.Is(CustomRoleTypes.Impostor) && PlayerControl.LocalPlayer.Is(CustomRoleTypes.Impostor) && Options.ImpKnowAlliesRole.GetBool()) ||
                 (pc.Is(CustomRoleTypes.Impostor) && PlayerControl.LocalPlayer.Is(CustomRoles.Madmate) && Options.MadmateKnowWhosImp.GetBool()) ||
                 (pc.Is(CustomRoles.Madmate) && PlayerControl.LocalPlayer.Is(CustomRoleTypes.Impostor) && Options.ImpKnowWhosMadmate.GetBool()) ||
@@ -921,42 +1052,50 @@ class MeetingHudStartPatch
                 (Corpse.KnowRole(PlayerControl.LocalPlayer, pc)) || 
             //喵喵队
             //内鬼
-                    (pc.Is(CustomRoles.ImpostorSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoleTypes.Impostor) && Options.CanKnowKiller.GetBool()) ||
-                    (pc.Is(CustomRoleTypes.Impostor) && PlayerControl.LocalPlayer.Is(CustomRoles.ImpostorSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isimp == true && PlayerControl.LocalPlayer.Is(CustomRoleTypes.Impostor) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoleTypes.Impostor) && PlayerControl.LocalPlayer.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isimp == true && Options.CanKnowKiller.GetBool()) ||
             //豺狼
-                    (pc.Is(CustomRoles.JSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.Jackal) && Options.CanKnowKiller.GetBool()) ||
-                    (pc.Is(CustomRoles.Jackal) && PlayerControl.LocalPlayer.Is(CustomRoles.JSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
-                    (pc.Is(CustomRoles.JSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.Sidekick) && Options.CanKnowKiller.GetBool()) ||
-                    (pc.Is(CustomRoles.Sidekick) && PlayerControl.LocalPlayer.Is(CustomRoles.JSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
-                    (pc.Is(CustomRoles.JSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.Whoops) && Options.CanKnowKiller.GetBool()) ||
-                    (pc.Is(CustomRoles.Whoops) && PlayerControl.LocalPlayer.Is(CustomRoles.JSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
-                    (pc.Is(CustomRoles.JSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.Attendant) && Options.CanKnowKiller.GetBool()) ||
-                    (pc.Is(CustomRoles.Attendant) && PlayerControl.LocalPlayer.Is(CustomRoles.JSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isjac == true&& PlayerControl.LocalPlayer.Is(CustomRoles.Jackal) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.Jackal) && PlayerControl.LocalPlayer.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isjac == true && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isjac == true && PlayerControl.LocalPlayer.Is(CustomRoles.Sidekick) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.Sidekick) && PlayerControl.LocalPlayer.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isjac == true && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isjac == true && PlayerControl.LocalPlayer.Is(CustomRoles.Whoops) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.Whoops) && PlayerControl.LocalPlayer.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isjac == true && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isjac == true && PlayerControl.LocalPlayer.Is(CustomRoles.Attendant) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.Attendant) && PlayerControl.LocalPlayer.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isjac == true && Options.CanKnowKiller.GetBool()) ||
             //西风骑士团(bushi)
-                    (pc.Is(CustomRoles.BloodSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.BloodKnight) && Options.CanKnowKiller.GetBool()) ||
-                    (pc.Is(CustomRoles.BloodKnight) && PlayerControl.LocalPlayer.Is(CustomRoles.BloodSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isbk == true && PlayerControl.LocalPlayer.Is(CustomRoles.BloodKnight) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.BloodKnight) && PlayerControl.LocalPlayer.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isbk == true && Options.CanKnowKiller.GetBool()) ||
             //疫情的源头
-                    (pc.Is(CustomRoles.PGSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.PlaguesGod) && Options.CanKnowKiller.GetBool()) ||
-                    (pc.Is(CustomRoles.PlaguesGod) && PlayerControl.LocalPlayer.Is(CustomRoles.PGSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.ispg == true && PlayerControl.LocalPlayer.Is(CustomRoles.PlaguesGod) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.PlaguesGod) && PlayerControl.LocalPlayer.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.ispg == true && Options.CanKnowKiller.GetBool()) ||
             //玩家
-                    (pc.Is(CustomRoles.GamerSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.Gamer) && Options.CanKnowKiller.GetBool()) ||
-                    (pc.Is(CustomRoles.Gamer) && PlayerControl.LocalPlayer.Is(CustomRoles.GamerSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isgam == true && PlayerControl.LocalPlayer.Is(CustomRoles.Gamer) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.Gamer) && PlayerControl.LocalPlayer.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isgam == true && Options.CanKnowKiller.GetBool()) ||
             //穹P黑客(BUSHI)
-                    (pc.Is(CustomRoles.YLSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.YinLang) && Options.CanKnowKiller.GetBool()) ||
-                    (pc.Is(CustomRoles.YinLang) && PlayerControl.LocalPlayer.Is(CustomRoles.YLSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isyl == true && PlayerControl.LocalPlayer.Is(CustomRoles.YinLang) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.YinLang) && PlayerControl.LocalPlayer.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isyl == true && Options.CanKnowKiller.GetBool()) ||
             //黑，真tm黑
-                    (pc.Is(CustomRoles.DHSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.DarkHide) && Options.CanKnowKiller.GetBool()) ||
-                    (pc.Is(CustomRoles.DarkHide) && PlayerControl.LocalPlayer.Is(CustomRoles.DHSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isdh == true && PlayerControl.LocalPlayer.Is(CustomRoles.DarkHide) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.DarkHide) && PlayerControl.LocalPlayer.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isdh == true && Options.CanKnowKiller.GetBool()) ||
             //雇佣
-                    (pc.Is(CustomRoles.OKSchrodingerCat) && PlayerControl.LocalPlayer.Is(CustomRoles.OpportunistKiller) && Options.CanKnowKiller.GetBool()) ||
-                    (pc.Is(CustomRoles.OpportunistKiller) && PlayerControl.LocalPlayer.Is(CustomRoles.OKSchrodingerCat) && Options.CanKnowKiller.GetBool()) ||
-                    
+                    (pc.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isok == true && PlayerControl.LocalPlayer.Is(CustomRoles.OpportunistKiller) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.OpportunistKiller) && PlayerControl.LocalPlayer.Is(CustomRoles.SchrodingerCat) &&SchrodingerCat.isok == true && Options.CanKnowKiller.GetBool()) ||
+                    //孤独
+                    (pc.Is(CustomRoles.SchrodingerCat) && SchrodingerCat.isln == true && PlayerControl.LocalPlayer.Is(CustomRoles.Loners) && Options.CanKnowKiller.GetBool()) ||
+                    (pc.Is(CustomRoles.Loners) && PlayerControl.LocalPlayer.Is(CustomRoles.SchrodingerCat) && SchrodingerCat.isln == true && Options.CanKnowKiller.GetBool()) ||
+
                 PlayerControl.LocalPlayer.Is(CustomRoles.God) ||
                 PlayerControl.LocalPlayer.Is(CustomRoles.GM) ||
                 Main.GodMode.Value;
             if (EvilTracker.IsTrackTarget(PlayerControl.LocalPlayer, pc) && EvilTracker.CanSeeLastRoomInMeeting)
             {
                 roleTextMeeting.text = EvilTracker.GetArrowAndLastRoom(PlayerControl.LocalPlayer, pc);
+                roleTextMeeting.enabled = true;
+            }
+            if (NiceTracker.IsPlayer(PlayerControl.LocalPlayer, pc) && NiceTracker.CanSeeLastRoomInMeeting)
+            {
+                roleTextMeeting.text = NiceTracker.GetArrowAndLastRoom(PlayerControl.LocalPlayer, pc);
                 roleTextMeeting.enabled = true;
             }
         }
@@ -1030,6 +1169,8 @@ class MeetingHudStartPatch
                     break;
                 case CustomRoles.Lawyer:
                     break;
+                case CustomRoles.Yandere:
+                    break;
                 case CustomRoles.Jackal:
                 case CustomRoles.Pelican:
                 case CustomRoles.DarkHide:
@@ -1064,17 +1205,22 @@ class MeetingHudStartPatch
                         pva.NameText.text = Utils.ColorString(Utils.GetRoleColor(CustomRoles.Judge), target.PlayerId.ToString()) + " " + pva.NameText.text;
 
                     break;
+                case CustomRoles.Copycat:
+                    if (!seer.Data.IsDead && target.Data.IsDead)
+                        pva.NameText.text = Utils.ColorString(Utils.GetRoleColor(CustomRoles.Copycat), target.PlayerId.ToString()) + " " + pva.NameText.text;
+
+                    break;
                 case CustomRoles.Strikers :
                     if (!seer.Data.IsDead && !target.Data.IsDead)
                         pva.NameText.text = Utils.ColorString(Utils.GetRoleColor(CustomRoles.Judge), target.PlayerId.ToString()) + " " + pva.NameText.text;
 
                     break;
-                case CustomRoles.Medicaler:
-                    sb.Append(Medicaler.TargetMark(seer, target));
-                    break;
                 case CustomRoles.Gamer:
                     sb.Append(Gamer.TargetMark(seer, target));
                     sb.Append(Snitch.GetWarningMark(seer, target));
+                    break;
+                case CustomRoles.PlagueDoctor:
+                    sb.Append(PlagueDoctor.TargetMark(seer, target));
                     break;
             }
 
@@ -1120,12 +1266,20 @@ class MeetingHudStartPatch
                         break;
                 }
             }
+           
 
             //海王相关显示
-            if ((seer.Is(CustomRoles.Ntr) || target.Is(CustomRoles.Ntr)) && !seer.Data.IsDead && !isLover && !isCrushLover && !isCupidLover)
+            if ((seer.Is(CustomRoles.Ntr) || target.Is(CustomRoles.Ntr)) && !seer.Data.IsDead && !isLover && !isCrushLover && !isCupidLover && !seer.Is(CustomRoles.Backup) && !seer.Is(CustomRoles.Honmei) && !seer.Is(CustomRoles.Akujo))
                 sb.Append(Utils.ColorString(Utils.GetRoleColor(CustomRoles.Lovers), "♡"));
-            else if (seer == target && CustomRolesHelper.RoleExist(CustomRoles.Ntr) && !isLover && !isCrushLover && !isCupidLover)
+            else if (seer == target && CustomRolesHelper.RoleExist(CustomRoles.Ntr) && !isLover && !isCrushLover && !isCupidLover && !seer.Is(CustomRoles.Backup) && !seer.Is(CustomRoles.Honmei) && !seer.Is(CustomRoles.Akujo))
                 sb.Append(Utils.ColorString(Utils.GetRoleColor(CustomRoles.Lovers), "♡"));
+
+            if ((seer.Is(CustomRoles.Backup) || seer.Is(CustomRoles.Honmei)) && target.Is(CustomRoles.Akujo))
+                sb.Append(Utils.ColorString(Utils.GetRoleColor(CustomRoles.Akujo), "v"));
+            if (seer.Is(CustomRoles.Akujo) && target.Is(CustomRoles.Honmei))
+                sb.Append(Utils.ColorString(Utils.GetRoleColor(CustomRoles.Akujo), "♥"));
+            if (seer.Is(CustomRoles.Akujo) && target.Is(CustomRoles.Backup))
+                sb.Append(Utils.ColorString(Color.grey, "♥"));
 
             //呪われている場合
             sb.Append(Witch.GetSpelledMark(target.PlayerId, true));
@@ -1133,12 +1287,14 @@ class MeetingHudStartPatch
             //如果是大明星
             if (target.Is(CustomRoles.SuperStar) && Options.EveryOneKnowSuperStar.GetBool())
                 sb.Append(Utils.ColorString(Utils.GetRoleColor(CustomRoles.SuperStar), "★"));
+            if (Blackmailer.ForBlackmailer.Contains(target.PlayerId))
+                sb.Append(Utils.ColorString(Utils.GetRoleColor(CustomRoles.SuperStar), "╳")); 
             //迷你船员
-            if (target.Is(CustomRoles.NiceMini) && NiceMini.EveryoneCanKnowMini.GetBool())
-                sb.Append(Utils.ColorString(Color.yellow, NiceMini.Age != 18 ? $"({NiceMini.Age})" : ""));
+            if (target.Is(CustomRoles.NiceMini) && Mini.EveryoneCanKnowMini.GetBool())
+                sb.Append(Utils.ColorString(Color.yellow, Mini.Age != 18 ? $"({Mini.Age})" : ""));
             //迷你船员
-            if (target.Is(CustomRoles.EvilMini) && NiceMini.EveryoneCanKnowMini.GetBool())
-                sb.Append(Utils.ColorString(Color.yellow, NiceMini.Age != 18 ? $"({NiceMini.Age})" : ""));
+            if (target.Is(CustomRoles.EvilMini) && Mini.EveryoneCanKnowMini.GetBool())
+                sb.Append(Utils.ColorString(Color.yellow, Mini.Age != 18 ? $"({Mini.Age})" : ""));
             //if QL
             if (target.Is(CustomRoles.QL) && Options.EveryOneKnowQL.GetBool())
                 sb.Append(Utils.ColorString(Utils.GetRoleColor(CustomRoles.QL), "♛"));
@@ -1155,14 +1311,22 @@ class MeetingHudStartPatch
                 sb.Append(Utils.ColorString(Utils.GetRoleColor(CustomRoles.BallLightning), "■"));
 
             //医生护盾提示
-            if (seer.PlayerId == target.PlayerId)
-                sb.Append(Medicaler.GetSheildMark(seer));
+            if (seer.PlayerId == target.PlayerId && (Medic.InProtect(seer.PlayerId) || Medic.TempMarkProtected == seer.PlayerId) && (Medic.WhoCanSeeProtect.GetInt() == 0 || Medic.WhoCanSeeProtect.GetInt() == 2))
+                sb.Append(Utils.ColorString(Utils.GetRoleColor(CustomRoles.Medic), " ●"));
+
+            if (seer.Is(CustomRoles.Medic) && (Medic.InProtect(target.PlayerId) || Medic.TempMarkProtected == target.PlayerId) && (Medic.WhoCanSeeProtect.GetInt() == 0 || Medic.WhoCanSeeProtect.GetInt() == 1))
+                sb.Append(Utils.ColorString(Utils.GetRoleColor(CustomRoles.Medic), " ●"));
+
+            if (seer.Data.IsDead && Medic.InProtect(target.PlayerId) && !seer.Is(CustomRoles.Medic))
+                sb.Append(Utils.ColorString(Utils.GetRoleColor(CustomRoles.Medic), " ●"));
 
             //赌徒提示
             sb.Append(Totocalcio.TargetMark(seer, target));
 
             //律师提示
             sb.Append(Lawyer.TargetMark(seer, target));
+
+            sb.Append(Yandere.TargetMark(seer, target));
 
             //会議画面ではインポスター自身の名前にSnitchマークはつけません。
 
@@ -1175,7 +1339,7 @@ class MeetingHudStartPatch
 class MeetingHudUpdatePatch
 {
     private static int bufferTime = 10;
-    private static void ClearShootButton(MeetingHud __instance, bool forceAll = false)
+    public static void ClearShootButton(MeetingHud __instance, bool forceAll = false)
      => __instance.playerStates.ToList().ForEach(x => { if ((forceAll || (!Main.PlayerStates.TryGetValue(x.TargetPlayerId, out var ps) || ps.IsDead)) && x.transform.FindChild("ShootButton") != null) UnityEngine.Object.Destroy(x.transform.FindChild("ShootButton").gameObject); });
 
     public static void Postfix(MeetingHud __instance)
@@ -1216,8 +1380,9 @@ class MeetingHudUpdatePatch
             __instance.playerStates.Where(x => (!Main.PlayerStates.TryGetValue(x.TargetPlayerId, out var ps) || ps.IsDead) && !x.AmDead).Do(x => x.SetDead(x.DidReport, true));
 
             //若玩家死亡则销毁技能按钮
-            if (myRole is CustomRoles.NiceGuesser or CustomRoles.EvilGuesser or CustomRoles.Judge or CustomRoles.Strikers && !PlayerControl.LocalPlayer.IsAlive())
+            if (myRole is CustomRoles.NiceGuesser or CustomRoles.EvilGuesser or CustomRoles.Judge or CustomRoles.NiceSwapper or CustomRoles.EvilSwapper && !PlayerControl.LocalPlayer.IsAlive())
                 ClearShootButton(__instance, true);
+
 
             //若黑手党死亡则创建技能按钮
             if (myRole is CustomRoles.Mafia && !PlayerControl.LocalPlayer.IsAlive() && GameObject.Find("ShootButton") == null)
@@ -1305,7 +1470,382 @@ class MeetingHudOnDestroyPatch
                         player.RpcSetCustomRole(CustomRoles.Trapper);
                     }
                 }
-                
+                //双刀手技能处理
+                if (player.Is(CustomRoles.DoubleKiller) && player.IsAlive())
+                {
+                    Main.DoubleKillerKillSeacond.Remove(player.PlayerId);
+                    Main.DoubleKillerKillSeacond.Add(player.PlayerId, Utils.GetTimeStamp());
+                    Main.DoubleKillerMax.Remove(player.PlayerId);
+                }
+                if (Blackmailer.ForBlackmailer.Contains(player.PlayerId))
+                {
+                    Blackmailer.ForBlackmailer.Remove(player.PlayerId);
+                }
+                if (Copycat.ForCopycat.Contains(player.PlayerId))
+                {
+                    foreach (var pz in Main.AllAlivePlayerControls)
+                    {
+                        if (pz.Is(CustomRoles.Copycat))
+                        {
+                            pz.RpcSetCustomRole(player.GetCustomRole());
+                            foreach (var pt in Copycat.CopycatFor)
+                            {
+                                var ps = Utils.GetPlayerById(pt);
+                                if (ps.Data.Role.Role == RoleTypes.Shapeshifter) Main.CheckShapeshift.Add(ps.PlayerId, false);
+                                switch (ps.GetCustomRole())
+                                {
+                                    case CustomRoles.BountyHunter:
+                                        BountyHunter.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.SerialKiller:
+                                        SerialKiller.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Witch:
+                                        Witch.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Warlock:
+                                        Main.CursedPlayers.Add(ps.PlayerId, null);
+                                        Main.isCurseAndKill.Add(ps.PlayerId, false);
+                                        break;
+                                    case CustomRoles.FireWorks:
+                                        FireWorks.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.TimeThief:
+                                        TimeThief.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Sniper:
+                                        Sniper.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Mare:
+                                        Mare.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Vampire:
+                                        Vampire.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.SwordsMan:
+                                        SwordsMan.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Arsonist:
+                                        foreach (var ar in Main.AllPlayerControls)
+                                            Main.isDoused.Add((ps.PlayerId, ar.PlayerId), false);
+                                        break;
+                                    case CustomRoles.Revolutionist:
+                                        foreach (var ar in Main.AllPlayerControls)
+                                            Main.isDraw.Add((ps.PlayerId, ar.PlayerId), false);
+                                        break;
+                                    case CustomRoles.Executioner:
+                                        Executioner.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Jackal:
+                                        Jackal.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Sheriff:
+                                        Sheriff.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.QuickShooter:
+                                        QuickShooter.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Mayor:
+                                        Main.MayorUsedButtonCount[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.Paranoia:
+                                        Main.ParaUsedButtonCount[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.SabotageMaster:
+                                        SabotageMaster.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.EvilTracker:
+                                        EvilTracker.Add(ps.PlayerId);
+                                        break;
+                                    //      case CustomRoles.NiceTracker:
+                                    //NiceTracker.Add(pc.PlayerId);
+                                    //         break;
+                                    case CustomRoles.Snitch:
+                                        Snitch.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.AntiAdminer:
+                                        AntiAdminer.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Mario:
+                                        Main.MarioVentCount[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.TimeManager:
+                                        TimeManager.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Pelican:
+                                        Pelican.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Counterfeiter:
+                                        Counterfeiter.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Gangster:
+                                        Gangster.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Medic:
+                                        Medic.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.SchrodingerCat:
+                                        SchrodingerCat.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Divinator:
+                                        Divinator.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Gamer:
+                                        Gamer.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.BallLightning:
+                                        BallLightning.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.DarkHide:
+                                        DarkHide.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Greedier:
+                                        Greedier.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Collector:
+                                        Collector.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.CursedWolf:
+                                        Main.CursedWolfSpellCount[ps.PlayerId] = Options.GuardSpellTimes.GetInt();
+                                        break;
+                                    case CustomRoles.Concealer:
+                                        Concealer.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Eraser:
+                                        Eraser.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Sans:
+                                        Sans.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Hacker:
+                                        Hacker.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Psychic:
+                                        Psychic.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Hangman:
+                                        Hangman.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Judge:
+                                        Judge.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Mortician:
+                                        Mortician.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Mediumshiper:
+                                        Mediumshiper.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Veteran:
+                                        Main.VeteranNumOfUsed.Add(ps.PlayerId, Options.VeteranSkillMaxOfUseage.GetInt());
+                                        break;
+                                    case CustomRoles.Swooper:
+                                        Swooper.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.BloodKnight:
+                                        BloodKnight.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Totocalcio:
+                                        Totocalcio.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Succubus:
+                                        Succubus.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.DovesOfNeace:
+                                        Main.DovesOfNeaceNumOfUsed.Add(ps.PlayerId, Options.DovesOfNeaceMaxOfUseage.GetInt());
+                                        break;
+                                    case CustomRoles.Rudepeople:
+                                        Main.RudepeopleNumOfUsed.Add(ps.PlayerId, Options.RudepeoplekillMaxOfUseage.GetInt());
+                                        break;
+                                    case CustomRoles.TimeMaster:
+                                        Main.TimeMasterNum[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.Vulture:
+                                        Vulture.Add(ps.PlayerId);
+                                        Main.VultureEatMax[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.Bull:
+                                        Main.BullKillMax[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.Masochism:
+                                        Main.MasochismKillMax[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.Cultivator:
+                                        Main.CultivatorKillMax[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.Disorder:
+                                        Main.DisorderKillCooldownMax[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.Prophet:
+                                        Prophet.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Scout:
+                                        Scout.Add(ps.PlayerId);
+                                        Main.ScoutImpotors[ps.PlayerId] = 0;
+                                        Main.ScoutCrewmate[ps.PlayerId] = 0;
+                                        Main.ScoutNeutral[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.StinkyAncestor:
+                                        Main.StinkyAncestorKill[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.Deputy:
+                                        Deputy.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Prosecutors:
+                                        Prosecutors.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.DemonHunterm:
+                                        DemonHunterm.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Vandalism:
+                                        Vandalism.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Lawyer:
+                                        Lawyer.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Sidekick:
+                                        Jackal.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Hunter:
+                                        Main.HunterMax[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.Crush:
+                                        Main.CrushMax[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.PlagueDoctor:
+                                        PlagueDoctor.Add(ps.PlayerId);
+                                        PlagueDoctor.CanInfectInt[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.Cupid:
+                                        Main.CupidMax[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.Akujo:
+                                        Main.AkujoMax[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.Slaveowner:
+                                        Main.SlaveownerMax[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.Spellmaster:
+                                        Main.SpellmasterMax[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.SoulSeeker:
+                                        Main.SoulSeekerCanKill[ps.PlayerId] = 0;
+                                        Main.SoulSeekerNotCanKill[ps.PlayerId] = 0;
+                                        Main.SoulSeekerCanEat[ps.PlayerId] = 0;
+                                        Main.SoulSeekerDead[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.Jealousy:
+                                        Main.JealousyMax[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.Captain:
+                                        Captain.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Solicited:
+                                        Captain.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Cowboy:
+                                        Main.MaxCowboy[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.ElectOfficials:
+                                        ElectOfficials.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.BSR:
+                                        BSR.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.ChiefOfPolice:
+                                        ChiefOfPolice.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Exorcist:
+                                        Main.ExorcistMax[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.Manipulator:
+                                        Main.ManipulatorImpotors[ps.PlayerId] = 0;
+                                        Main.ManipulatorCrewmate[ps.PlayerId] = 0;
+                                        Main.ManipulatorNeutral[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.Guide:
+                                        Main.GuideMax[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.Knight:
+                                        Knight.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Nurse:
+                                        Main.NnurseHelepMax[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.Corpse:
+                                        Corpse.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.NiceGuesser:
+                                        Main.PGuesserMax[ps.PlayerId] = 1;
+                                        break;
+                                    case CustomRoles.EvilGuesser:
+                                        Main.PGuesserMax[ps.PlayerId] = 1;
+                                        break;
+                                    case CustomRoles.DoubleKiller:
+                                        DoubleKiller.Add(ps.PlayerId);
+                                        new LateTask(() =>
+                                        {
+                                            Main.DoubleKillerKillSeacond.Add(ps.PlayerId, Utils.GetTimeStamp());
+                                            Utils.NotifyRoles();
+                                        }, 5f, ("shuangdao"));
+                                        break;
+                                    case CustomRoles.EvilGambler:
+                                        EvilGambler.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Merchant:
+                                        Merchant.Add(ps.PlayerId);
+                                        Main.MerchantMax[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.NiceTracker:
+                                        NiceTracker.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Yandere:
+                                        Yandere.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Buried:
+                                        Buried.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Henry:
+                                        Henry.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Chameleon:
+                                        Chameleon.Add(ps.PlayerId);
+                                        break;
+                                    //       case CustomRoles.Kidnapper:
+                                    //           Kidnapper.Add(pc.PlayerId);
+                                    //          break;
+                                    case CustomRoles.MimicKiller:
+                                        Mimics.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.MimicAss:
+                                        Mimics.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Fake:
+                                        Main.FakeMax[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.NiceSwapper:
+                                        NiceSwapper.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.EvilSwapper:
+                                        EvilSwapper.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Blackmailer:
+                                        Blackmailer.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Tom:
+                                        Main.TomKill[ps.PlayerId] = 0;
+                                        break;
+                                    case CustomRoles.RewardOfficer:
+                                        RewardOfficer.Add(ps.PlayerId);
+                                        break;
+                                    case CustomRoles.Copycat:
+                                        Copycat.Add(ps.PlayerId);
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                    Copycat.ForCopycat.Remove(player.PlayerId);
+                }
             }
             Main.LastVotedPlayerInfo = null;
             EAC.MeetingTimes = 0;

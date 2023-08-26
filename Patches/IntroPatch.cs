@@ -149,17 +149,33 @@ class BeginCrewmatePatch
         {
             case CustomRoleTypes.Impostor:
                 __instance.TeamTitle.text = GetString("TeamImpostor");
+                __instance.ImpostorText.gameObject.SetActive(true);
+                __instance.ImpostorText.text = GetString("TeamImpostora");
                 __instance.TeamTitle.color = __instance.BackgroundBar.material.color = new Color32(255, 25, 25, byte.MaxValue);
                 PlayerControl.LocalPlayer.Data.Role.IntroSound = GetIntroSound(RoleTypes.Impostor);
                 break;
             case CustomRoleTypes.Crewmate:
                 __instance.TeamTitle.text = GetString("TeamCrewmate");
-                __instance.TeamTitle.color = __instance.BackgroundBar.material.color = new Color32(140, 255, 255, byte.MaxValue);
+                __instance.ImpostorText.gameObject.SetActive(true);
+                __instance.ImpostorText.text = GetString("TeamCrewmatea");
+                __instance.TeamTitle.color = new Color32(140, 255, 255, byte.MaxValue);
+                __instance.BackgroundBar.material.color = Utils.GetRoleColor(role);
                 PlayerControl.LocalPlayer.Data.Role.IntroSound = GetIntroSound(RoleTypes.Crewmate);
                 break;
-            case CustomRoleTypes.Neutral:
+            case CustomRoleTypes.NotNK:
                 __instance.TeamTitle.text = GetString("TeamNeutral");
-                __instance.TeamTitle.color = __instance.BackgroundBar.material.color = new Color32(255, 171, 27, byte.MaxValue);
+                __instance.ImpostorText.gameObject.SetActive(true);
+                __instance.ImpostorText.text = GetString("TeamNeutrala");
+                __instance.TeamTitle.color = new Color32(255, 171, 27, byte.MaxValue);
+                __instance.BackgroundBar.material.color = Utils.GetRoleColor(role);
+                PlayerControl.LocalPlayer.Data.Role.IntroSound = GetIntroSound(RoleTypes.Impostor);
+                break;
+            case CustomRoleTypes.NK:
+                __instance.TeamTitle.text = GetString("TeamNK");
+                __instance.ImpostorText.gameObject.SetActive(true);
+                __instance.ImpostorText.text = GetString("TeamNKa");
+                __instance.TeamTitle.color = new Color32(152, 152, 152, byte.MaxValue);
+                __instance.BackgroundBar.material.color = Utils.GetRoleColor(role);
                 PlayerControl.LocalPlayer.Data.Role.IntroSound = GetIntroSound(RoleTypes.Shapeshifter);
                 break;
         }
@@ -189,7 +205,7 @@ class BeginCrewmatePatch
                 break;
 
             case CustomRoles.Doctor:
-            case CustomRoles.Medicaler:
+            case CustomRoles.Medic:
                 PlayerControl.LocalPlayer.Data.Role.IntroSound = GetIntroSound(RoleTypes.Scientist);
                 break;
 
@@ -291,7 +307,7 @@ class BeginImpostorPatch
             __instance.overlayHandle.color = Palette.ImpostorRed;
             return true;
         }
-        else if (role is CustomRoles.Sheriff or CustomRoles.SwordsMan or CustomRoles.Medicaler)
+        else if (role is CustomRoles.Sheriff or CustomRoles.SwordsMan or CustomRoles.Medic)
         {
             yourTeam = new Il2CppSystem.Collections.Generic.List<PlayerControl>();
             yourTeam.Add(PlayerControl.LocalPlayer);

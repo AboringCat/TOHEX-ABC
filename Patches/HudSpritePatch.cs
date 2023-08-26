@@ -80,11 +80,8 @@ public static class HudSpritePatch
             case CustomRoles.Puppeteer:
                 newKillButton = CustomButton.Get("Puttpuer");
                 break;
-            case CustomRoles.Medicaler:
+            case CustomRoles.Medic:
                 newKillButton = CustomButton.Get("Shield");
-                break;
-            case CustomRoles.Strikers:
-                newKillButton = CustomButton.Get("Axe");
                 break;
             case CustomRoles.Gangster:
                 if (Gangster.CanRecruit(player.PlayerId)) newKillButton = CustomButton.Get("Sidekick");
@@ -130,8 +127,8 @@ public static class HudSpritePatch
             case CustomRoles.Deputy:
                 newKillButton = CustomButton.Get("Deputy");
                 break;
-         //   case CustomRoles.QSR:
-           //     newKillButton = CustomButton.Get("QSR");
+         //   case CustomRoles.Prosecutors:
+           //     newKillButton = CustomButton.Get("Prosecutors");
            //     break;
             case CustomRoles.Vulture:
                 newReportButton = CustomButton.Get("VultureEat");
@@ -157,14 +154,40 @@ public static class HudSpritePatch
             case CustomRoles.Crush:
                 newKillButton = CustomButton.Get("Subbus");
                 break;
-            case CustomRoles.Cupid:
-                newKillButton = CustomButton.Get("Subbus");
+            case CustomRoles.PlagueDoctor:
+                newKillButton = CustomButton.Get("InfectButton");
                 break;
             case CustomRoles.Captain:
                 newKillButton = CustomButton.Get("Sidekick");
                 break;
+            case CustomRoles.Cupid:
+                if (Main.CupidMax[player.PlayerId] < 2)
+                {
+                    newKillButton = CustomButton.Get("CupidButton");
+                }
+                if (Main.CupidMax[player.PlayerId] >= 2 && Options.CupidShield.GetBool())
+                {
+                    newKillButton = CustomButton.Get("Shield");
+                }
+                break;
+            case CustomRoles.Akujo:
+                if (Main.AkujoMax[player.PlayerId] < 1)
+                {
+                    newKillButton = CustomButton.Get("Ho");
+                }
+                else if (Main.AkujoMax[player.PlayerId] >= 1)
+                {
+                    newKillButton = CustomButton.Get("sb");
+                }
+                break;
             case CustomRoles.DestinyChooser:
                 newKillButton = CustomButton.Get("Curse");
+                break;
+            case CustomRoles.Prosecutors:
+                newKillButton = CustomButton.Get("Blank");
+                break;
+            case CustomRoles.Medusa:
+                newAbilityButton = CustomButton.Get("Strong");
                 break;
         }
 

@@ -150,6 +150,9 @@ class SetEverythingUpPatch
             case CustomWinner.CupidLovers:
                 __instance.BackgroundBar.material.color = Utils.GetRoleColor(CustomRoles.CupidLovers);
                 break;
+            case CustomWinner.Akujo:
+                __instance.BackgroundBar.material.color = Utils.GetRoleColor(CustomRoles.Akujo);
+                break;
             //引き分け処理
             case CustomWinner.Draw:
                 __instance.WinText.text = GetString("ForceEnd");
@@ -178,12 +181,12 @@ class SetEverythingUpPatch
         foreach (var additionalWinners in CustomWinnerHolder.AdditionalWinnerTeams)
         {
             var addWinnerRole = (CustomRoles)additionalWinners;
-            AdditionalWinnerText += "＆" + Utils.ColorString(Utils.GetRoleColor(addWinnerRole), GetWinnerRoleName(addWinnerRole));
+            AdditionalWinnerText += "＆" + Utils.ColorString(Utils.GetRoleColor(addWinnerRole), GetWinnerRoleName(addWinnerRole)+ GetString("Win"));
         }
         if (CustomWinnerHolder.WinnerTeam is not CustomWinner.Draw and not CustomWinner.None and not CustomWinner.Error)
         {
-            if (AdditionalWinnerText == "") WinnerText.text = $"<color={CustomWinnerColor}>{CustomWinnerText}{GetString("Win")}</color>";
-            else WinnerText.text = $"<color={CustomWinnerColor}>{CustomWinnerText}</color>{AdditionalWinnerText}{GetString("Win")}";
+            if (AdditionalWinnerText == "") WinnerText.text = $"<color={CustomWinnerColor}>{CustomWinnerText}</color>";
+            else WinnerText.text = $"<color={CustomWinnerColor}>{CustomWinnerText}</color>{AdditionalWinnerText}";
         }
 
         static string GetWinnerRoleName(CustomRoles role)

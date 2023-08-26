@@ -161,12 +161,13 @@ public class GameOptionsMenuUpdatePatch
             tabcolor = tab switch
             {
                 TabGroup.SystemSettings => Main.ModColor,
-                TabGroup.GameSettings => "#59ef83",
-                TabGroup.ImpostorRoles => "#f74631",
+                TabGroup.GameSettings => "#2FF2FF",
+                TabGroup.ImpostorRoles => "#ff0000",
                 TabGroup.CrewmateRoles => "#8cffff",
                 TabGroup.NeutralRoles => "#ffab1b",
                 TabGroup.Addons => "#ff9ace",
-                TabGroup.OtherRoles => "#76b8e0",
+                TabGroup.OtherRoles => "#00ff00",
+                //TabGroup.Credits => Main.ModColor,
                 _ => "#ffffff",
             };
             if (__instance.transform.parent.parent.name != tab + "Tab") continue;
