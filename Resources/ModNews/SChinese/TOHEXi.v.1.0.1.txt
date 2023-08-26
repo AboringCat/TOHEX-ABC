@@ -1,0 +1,18 @@
+#Number:100044
+#Title:TownOfHostEditedXi v1.0.1
+#SubTitle:★★★★泰裤辣★★★★
+#ShortTitle:★TOHEX v1.0.1
+#Date:2023-5-20T00:00:00Z
+#-----------------------------
+TOH你更新啊！
+
+
+## 对应官方版本
+- 基于TOH版本 v4.1.2
+- 基于TOHE版本 v2.3.5
+
+## 修正
+- 原TOHE使用人数更改为TOHEXi
+
+## 新增
+- 游戏音效
