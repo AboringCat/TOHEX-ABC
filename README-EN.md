@@ -1,9 +1,9 @@
 
-<h1 align="center">~ TOHEX-A boring cat .</h1>
+<h1 align="center">~ TownofHost Edited Xi ~</h1>
 
 ## 语言
-[简体中文](https://github.com/AboringCat/TOHEX-ABC/README.md)
-[日本語](https://github.com/AboringCat/TOHEX-ABC/README-JP.md)
+[简体中文](https://github.com/AboringCat/TOHEX-ABC/blob/main/README.md)
+[日本語](Comming Soon..)
 
 <br>
 <img align="left" alt="Cover" src="Resources/Images/TOHE-BG.jpg" width="50%" height="auto" /> 
@@ -21,9 +21,8 @@
 Regardin WebSite
   
 <p align="center">
-<a href="https://gitee.com/a-bor-cat/tohex-abc" target="_blank"><img src="https://img.shields.io/badge/Gitee%20-%231DA1F2.svg?&style=for-the-badge&logo=gitee&logoColor=white&color=FFA500"/></a>
-<a href="https://gitee.com/a-bor-cat/tohex-abc/releases/" target="_blank"><img src="https://img.shields.io/badge/GitHub%20-%231DA1F2.svg?&style=for-the-badge&logo=github&logoColor=white&color=000000"/></a>
-<a href="https://github.com/AboringCat/TOHEX-ABC" target="_blank"><img src="https://img.shields.io/badge/Discord%20-%231DA1F2.svg?&style=for-the-badge&logo=discord&logoColor=white&color=4169E1"/></a>
+<a href="https://github.com/AboringCat/TOHEX-ABC" target="_blank"><img src="https://img.shields.io/badge/GitHub%20-%231DA1F2.svg?&style=for-the-badge&logo=github&logoColor=white&color=000000"/></a>
+
   
 <br>
   
@@ -32,12 +31,9 @@ support AmongUs v2023.7.11 and above
 
 The Latest Version: v2.0.0
 
-<a href="https://gitee.com/xigua_ya/tohex/releases/latest" target="_blank"><img src="https://img.shields.io/badge/Gitee Releases%20-%231DA1F2.svg?&style=for-the-badge&logo=gitee&logoColor=white&color=FFA500"/></a>
-
-<a href="https://github.com/TOHEX-Official/TownOfHostEdited-Xi/releases/latest" target="_blank"><img src="https://img.shields.io/badge/GitHub Releases%20-%231DA1F2.svg?&style=for-the-badge&logo=github&logoColor=white&color=000000"/></a>
 
 **TOHE was stopping support at v2.3.6.**<br>
-**But!TOHEX continuing TOHE!**
+**But!TOHEX-ABC continuing TOHE!**
 
 
 ## Source of some Role ideas
@@ -111,15 +107,10 @@ The Latest Version: v2.0.0
 > - Many role ideas
 > - Provided roles: Medic, Disperser, Researcher
 >  
->### :star: [To-Hope](https://gitee.com/xigua_ya/to-hope) :
-> 
-> - Developer：[A Boring Cat](https://github.com/AboringCat/)
-> - Reference: Custom Button(After v2023.7.11)
-> 
+
+
 # ***Credits***
 
 >> ***Developers：***<BR>
->[A Boring Cat]()- **Developer** -<br>
->
->> ***Painters***<br>
->[Jason·Fready]()- **Settings Tag** -<br>
+>[A Boring Cat]()- **Main Developer** -<br>
+
