@@ -73,6 +73,7 @@ public static class GuessManager
         if (ComfirmIncludeMsg(msg, "灰|灰|gray")) return 15;
         if (ComfirmIncludeMsg(msg, "茶|茶|tan")) return 16;
         if (ComfirmIncludeMsg(msg, "珊瑚|珊瑚|coral")) return 17;
+        if (ComfirmIncludeMsg(msg, "???|非法|？？？")) return 200;
         else return byte.MaxValue;
     }
 
